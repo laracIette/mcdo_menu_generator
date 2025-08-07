@@ -24,10 +24,14 @@ class _HomePageState extends State<HomePage> { // todo: check Set
 
   void _filterItems() {
     setState(() {
-      filteredItems = [];
-
+      filteredItems = _filters.requiredItems;
       currentCalories = 0.0;
       currentPrice = 0.0;
+
+      for (var item in filteredItems) {
+        currentCalories += item.calories;
+        currentPrice += item.price;
+      }
 
       items.sort((a, b) => (b.calories.compareTo(a.calories))); // sort in query function directly
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mcdo_menu_generator/filters.dart';
+import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
+import 'package:mcdo_menu_generator/items.dart';
 
 class FiltersPage extends StatefulWidget {
   const FiltersPage({super.key, required this.animation, required this.onFiltersUpdated, required this.filters});
@@ -27,6 +29,18 @@ class _FiltersPageState extends State<FiltersPage> {
       }
       else {
         _filters.allowedItemTypes.add(itemType);
+      }
+    });
+    _broadcastFiltersUpdated();
+  }
+
+  void _switchRequiredItem(Item item) {
+    setState(() {
+      if (_filters.requiredItems.contains(item)) {
+        _filters.requiredItems.remove(item);
+      }
+      else {
+        _filters.requiredItems.add(item);
       }
     });
     _broadcastFiltersUpdated();
@@ -93,13 +107,32 @@ class _FiltersPageState extends State<FiltersPage> {
                                 onPressed: () => Navigator.pop(context),
                                 child: Text("Close"),
                               ),
-
                               _getItemTypeButton(ItemType.burger),
-
                               _getItemTypeButton(ItemType.nuggets),
-
                               _getItemTypeButton(ItemType.salad),
-
+                              ...items.map((item) => InkWell(
+                                key: ValueKey(item.name),
+                                onTap: () => _switchRequiredItem(item),
+                                child: Row(
+                                  children: [
+                                    Image.asset(
+                                      item.imagePath,
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                    Spacer(),
+                                    Column(
+                                      children: [
+                                        Text(item.name),
+                                        Text('${item.calories} kcal'),
+                                      ],
+                                    ),
+                                    Spacer(),
+                                    Text('${item.price} €'),
+                                  ],
+                                ),
+                              )),
                             ],
                           ),
                         ),

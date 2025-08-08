@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
         currentPrice += item.price;
       }
 
-      final List<Item> sortedItems = getSortedItems((a, b) => (b.calories.compareTo(a.calories)));
+      final List<Item> sortedItems = getSortedItems((a, b) => b.calories.compareTo(a.calories));
 
       for (var item in sortedItems) {
         // ignore not allowed item type

@@ -16,12 +16,25 @@ class FiltersPage extends StatefulWidget {
   State<FiltersPage> createState() => _FiltersPageState();
 }
 
+enum DropdownState {
+  closed,
+  opened,
+}
+
 class _FiltersPageState extends State<FiltersPage> {
   Filters get _filters => widget.filters;
 
-  void _broadcastFiltersUpdated() {
+  final Map<ItemType, DropdownState> dropdownStates = {};
+
+  void _switchDropdownState(ItemType itemType) =>
+    setState(() {
+      dropdownStates[itemType] = dropdownStates[itemType] == DropdownState.opened
+        ? DropdownState.closed
+        : DropdownState.opened;
+    });
+
+  void _broadcastFiltersUpdated() =>
     widget.onFiltersUpdated(_filters);
-  }
 
   void _switchAllowedItemType(ItemType itemType) {
     setState(() {
@@ -42,15 +55,9 @@ class _FiltersPageState extends State<FiltersPage> {
   }
 
   Widget _getItemTypeButton(ItemType itemType) {
-    const Map<ItemType, String> names = {
-      ItemType.burger: 'Burgers',
-      ItemType.nuggets: 'Nuggets',
-      ItemType.salad: 'Salads',
-    };
-
     return Row(
       children: [
-        Text(names[itemType] ?? ''),
+        Text(itemTypeNames[itemType] ?? ''),
         ElevatedButton(
           onPressed: () => _switchAllowedItemType(itemType),
           child: Text(_filters.allowedItemTypes.contains(itemType).toString()),
@@ -102,34 +109,48 @@ class _FiltersPageState extends State<FiltersPage> {
                               const VerticalSizedBox(),
                               _getItemTypeButton(ItemType.salad),
                               const VerticalSizedBox(),
-                              ...items.map((item) => InkWell(
-                                key: ValueKey(item.name),
-                                onTap: () => _switchRequiredItem(item),
-                                child: Container(
-                                  color: _filters.requiredItems.contains(item)
-                                      ? Colors.blue.withValues(alpha: 0.2) // selected background
-                                      : Colors.transparent,                // unselected background
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
+                              ...ItemType.values.map((itemType) => Column(
+                                key: ValueKey(itemType),
+                                children: [
+                                  Row(
                                     children: [
-                                      Image.asset(
-                                        item.imagePath,
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
+                                      Text(itemTypeNames[itemType] ?? 'Error'),
+                                      ElevatedButton(
+                                        onPressed: () => _switchDropdownState(itemType),
+                                        child: Text(dropdownStates[itemType] == DropdownState.opened ? '-' : '+')
                                       ),
-                                      Spacer(),
-                                      Column(
-                                        children: [
-                                          Text(item.name),
-                                          Text('${item.calories} kcal'),
-                                        ],
-                                      ),
-                                      Spacer(),
-                                      Text('${item.price} €'),
                                     ],
                                   ),
-                                ),
+                                  ...items.where((item) => item.type == itemType && dropdownStates[itemType] == DropdownState.opened).map((item) => InkWell(
+                                    key: ValueKey(item),
+                                    onTap: () => _switchRequiredItem(item),
+                                    child: Container(
+                                      color: _filters.requiredItems.contains(item)
+                                          ? Colors.blue.withValues(alpha: 0.2) // selected background
+                                          : Colors.transparent,                // unselected background
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: [
+                                          Image.asset(
+                                            item.imagePath,
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                          Spacer(),
+                                          Column(
+                                            children: [
+                                              Text(item.name),
+                                              Text('${item.calories} kcal'),
+                                            ],
+                                          ),
+                                          Spacer(),
+                                          Text('${item.price} €'),
+                                        ],
+                                      ),
+                                    ),
+                                  )),
+                                ],
                               )),
                             ],
                           ),

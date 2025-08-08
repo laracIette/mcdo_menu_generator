@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 85, 73, 105)),
       ),
       home: const HomePage(title: 'McDo'),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

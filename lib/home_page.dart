@@ -92,83 +92,86 @@ class _HomePageState extends State<HomePage> { // todo: check Set
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.title),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
 
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Target Calories',
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: _updateTargetCalories,
-                    ),
-                  ),
-
-                  const HorizontalSizedBox(),
-
-                  ElevatedButton(
-                    onPressed: () => _openSideSheet(context),
-                    child: const Text('Filters'),
-                  ),
-                ],
-              ),
-
-              const VerticalSizedBox(),
-
-              Row(
-                children: [
-                  Text('Items : ${filteredItems.length}'),
-                  Spacer(),
-                  Text('Calories : $currentCalories kcal'),
-                  Spacer(),
-                  Text('Price : $currentPrice €'),
-                ]
-              ),
-
-              const VerticalSizedBox(),
-
-              Expanded(
-                child: ListView(
+                Row(
                   children: [
-                    ...filteredItems.map(
-                      (item) => Row(
-                        key: ValueKey(item.name),
-                        children: [
-                          Image.asset(
-                            item.imagePath,
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                          Spacer(),
-                          Column(
-                            children: [
-                              Text(item.name),
-                              Text('${item.calories} kcal'),
-                            ],
-                          ),
-                          Spacer(),
-                          Text('${item.price} €'),
-                        ],
-                      )
+                    Expanded(
+                      child: TextField(
+                        decoration: const InputDecoration(
+                          labelText: 'Target Calories',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: _updateTargetCalories,
+                      ),
                     ),
+
+                    const HorizontalSizedBox(),
+
+                    ElevatedButton(
+                      onPressed: () => _openSideSheet(context),
+                      child: const Text('Filters'),
+                    ),
+                  ],
+                ),
+
+                const VerticalSizedBox(),
+
+                Row(
+                  children: [
+                    Text('Items : ${filteredItems.length}'),
+                    Spacer(),
+                    Text('Calories : $currentCalories kcal'),
+                    Spacer(),
+                    Text('Price : $currentPrice €'),
                   ]
                 ),
-              ),
-            ],
+
+                const VerticalSizedBox(),
+
+                Expanded(
+                  child: ListView(
+                    children: [
+                      ...filteredItems.map(
+                        (item) => Row(
+                          key: ValueKey(item.name),
+                          children: [
+                            Image.asset(
+                              item.imagePath,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                            Spacer(),
+                            Column(
+                              children: [
+                                Text(item.name),
+                                Text('${item.calories} kcal'),
+                              ],
+                            ),
+                            Spacer(),
+                            Text('${item.price} €'),
+                          ],
+                        )
+                      ),
+                    ]
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

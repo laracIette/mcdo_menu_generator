@@ -3,6 +3,7 @@ import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/items.dart';
 import 'package:mcdo_menu_generator/filters_page.dart';
+import 'package:mcdo_menu_generator/utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -19,12 +20,13 @@ class _HomePageState extends State<HomePage> { // todo: check Set
   double currentCalories = 0.0;
   double currentPrice = 0.0;
 
-  List<Item> filteredItems = [];
   Filters _filters = Filters();
+
+  List<Item> filteredItems = [];
 
   void _filterItems() {
     setState(() {
-      filteredItems = _filters.requiredItems;
+      filteredItems = _filters.requiredItems.toList();
       currentCalories = 0.0;
       currentPrice = 0.0;
 
@@ -33,13 +35,20 @@ class _HomePageState extends State<HomePage> { // todo: check Set
         currentPrice += item.price;
       }
 
-      items.sort((a, b) => (b.calories.compareTo(a.calories))); // sort in query function directly
+      final List<Item> sortedItems = getSortedItems((a, b) => (b.calories.compareTo(a.calories)));
 
-      for (var item in items) {
+      for (var item in sortedItems) {
+        // ignore not allowed item type
         if (!_filters.allowedItemTypes.contains(item.type)) {
           continue;
         }
 
+        // ignore already added required item
+        if (_filters.requiredItems.contains(item)) {
+          continue;
+        }
+
+        // ignore item if total calories too high
         if (currentCalories + item.calories > targetCalories) {
           continue;
         }
@@ -55,10 +64,6 @@ class _HomePageState extends State<HomePage> { // todo: check Set
   void _updateTargetCalories(String input) {
     targetCalories = double.tryParse(input) ?? 0.0;
     _filterItems();
-  }
-
-  Widget _getSizedBox() {
-    return const SizedBox(height: 32.0);
   }
 
   void _openSideSheet(BuildContext context) {
@@ -100,20 +105,28 @@ class _HomePageState extends State<HomePage> { // todo: check Set
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
 
-              ElevatedButton(
-                onPressed: () => _openSideSheet(context),
-                child: Text('Open Right Sheet'),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Target Calories',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: _updateTargetCalories,
+                    ),
+                  ),
+
+                  const HorizontalSizedBox(),
+
+                  ElevatedButton(
+                    onPressed: () => _openSideSheet(context),
+                    child: const Text('Filters'),
+                  ),
+                ],
               ),
 
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Target Calories',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: _updateTargetCalories
-              ),
-
-              _getSizedBox(),
+              const VerticalSizedBox(),
 
               Row(
                 children: [
@@ -125,7 +138,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                 ]
               ),
 
-              _getSizedBox(),
+              const VerticalSizedBox(),
 
               Expanded(
                 child: ListView(

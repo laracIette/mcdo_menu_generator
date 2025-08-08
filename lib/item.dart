@@ -1,7 +1,7 @@
 import 'package:mcdo_menu_generator/item_type.dart';
 
 class Item {
-  Item({required this.name, required this.type, required this.calories, required this.price, required this.imagePath});
+  const Item({required this.name, required this.type, required this.calories, required this.price, required this.imagePath});
 
   final String name;
   final ItemType type;

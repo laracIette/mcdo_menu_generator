@@ -3,6 +3,7 @@ import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
 import 'package:mcdo_menu_generator/items.dart';
+import 'package:mcdo_menu_generator/utils.dart';
 
 class FiltersPage extends StatefulWidget {
   const FiltersPage({super.key, required this.animation, required this.onFiltersUpdated, required this.filters});
@@ -24,10 +25,7 @@ class _FiltersPageState extends State<FiltersPage> {
 
   void _switchAllowedItemType(ItemType itemType) {
     setState(() {
-      if (_filters.allowedItemTypes.contains(itemType)) {
-        _filters.allowedItemTypes.remove(itemType);
-      }
-      else {
+      if (!_filters.allowedItemTypes.remove(itemType)) {
         _filters.allowedItemTypes.add(itemType);
       }
     });
@@ -36,10 +34,7 @@ class _FiltersPageState extends State<FiltersPage> {
 
   void _switchRequiredItem(Item item) {
     setState(() {
-      if (_filters.requiredItems.contains(item)) {
-        _filters.requiredItems.remove(item);
-      }
-      else {
+      if (!_filters.requiredItems.remove(item)) {
         _filters.requiredItems.add(item);
       }
     });
@@ -55,7 +50,7 @@ class _FiltersPageState extends State<FiltersPage> {
 
     return Row(
       children: [
-        Text('${names[itemType]}'),
+        Text(names[itemType] ?? ''),
         ElevatedButton(
           onPressed: () => _switchAllowedItemType(itemType),
           child: Text(_filters.allowedItemTypes.contains(itemType).toString()),
@@ -101,36 +96,39 @@ class _FiltersPageState extends State<FiltersPage> {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              Text("This is a side modal that covers full height."),
-                              SizedBox(height: 20),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text("Close"),
-                              ),
                               _getItemTypeButton(ItemType.burger),
+                              const VerticalSizedBox(),
                               _getItemTypeButton(ItemType.nuggets),
+                              const VerticalSizedBox(),
                               _getItemTypeButton(ItemType.salad),
+                              const VerticalSizedBox(),
                               ...items.map((item) => InkWell(
                                 key: ValueKey(item.name),
                                 onTap: () => _switchRequiredItem(item),
-                                child: Row(
-                                  children: [
-                                    Image.asset(
-                                      item.imagePath,
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    Spacer(),
-                                    Column(
-                                      children: [
-                                        Text(item.name),
-                                        Text('${item.calories} kcal'),
-                                      ],
-                                    ),
-                                    Spacer(),
-                                    Text('${item.price} €'),
-                                  ],
+                                child: Container(
+                                  color: _filters.requiredItems.contains(item)
+                                      ? Colors.blue.withValues(alpha: 0.2) // selected background
+                                      : Colors.transparent,                // unselected background
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      Image.asset(
+                                        item.imagePath,
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      Spacer(),
+                                      Column(
+                                        children: [
+                                          Text(item.name),
+                                          Text('${item.calories} kcal'),
+                                        ],
+                                      ),
+                                      Spacer(),
+                                      Text('${item.price} €'),
+                                    ],
+                                  ),
                                 ),
                               )),
                             ],

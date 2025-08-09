@@ -111,6 +111,10 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                   children: [
                     Expanded(
                       child: TextField(
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                          signed: false,
+                        ),
                         decoration: const InputDecoration(
                           labelText: 'Target Calories',
                           border: OutlineInputBorder(),

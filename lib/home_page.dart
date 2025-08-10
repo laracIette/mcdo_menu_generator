@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
-import 'package:mcdo_menu_generator/items.dart';
 import 'package:mcdo_menu_generator/filters_page.dart';
+import 'package:mcdo_menu_generator/location.dart';
+import 'package:mcdo_menu_generator/locations_page.dart';
 import 'package:mcdo_menu_generator/utils.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,27 +16,30 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> { // todo: check Set
-  double targetCalories = 0.0;
+  double _targetCalories = 0.0;
 
-  double currentCalories = 0.0;
-  double currentPrice = 0.0;
+  double _currentCalories = 0.0;
+  double _currentPrice = 0.0;
 
   Filters _filters = Filters();
 
   List<Item> filteredItems = [];
 
+  Location _currentLocation = Location(id: 0, name: "None");
+
   void _filterItems() {
     setState(() {
       filteredItems = _filters.requiredItems.toList();
-      currentCalories = 0.0;
-      currentPrice = 0.0;
+      _currentCalories = 0.0;
+      _currentPrice = 0.0;
 
       for (var item in filteredItems) {
-        currentCalories += item.calories;
-        currentPrice += item.price;
+        _currentCalories += item.calories;
+        _currentPrice += item.price;
       }
 
-      final List<Item> sortedItems = getSortedItems((a, b) => b.calories.compareTo(a.calories));
+      final List<Item> sortedItems = _currentLocation.getAvailableItems().toList();
+      sortedItems.sort((a, b) => b.calories.compareTo(a.calories));
 
       for (var item in sortedItems) {
         // ignore not allowed item type
@@ -49,12 +53,12 @@ class _HomePageState extends State<HomePage> { // todo: check Set
         }
 
         // ignore item if total calories too high
-        if (currentCalories + item.calories > targetCalories) {
+        if (_currentCalories + item.calories > _targetCalories) {
           continue;
         }
 
-        currentCalories += item.calories;
-        currentPrice += item.price;
+        _currentCalories += item.calories;
+        _currentPrice += item.price;
 
         filteredItems.add(item);
       }
@@ -62,27 +66,20 @@ class _HomePageState extends State<HomePage> { // todo: check Set
   }
 
   void _updateTargetCalories(String input) {
-    targetCalories = double.tryParse(input) ?? 0.0;
+    _targetCalories = double.tryParse(input) ?? 0.0;
     _filterItems();
   }
 
-  void _openSideSheet(BuildContext context) {
+  void _openSideSheet(BuildContext context, Offset startOffset, RoutePageBuilder pageBuilder) {
     Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black.withValues(alpha: 0.3),
-        pageBuilder: (context, animation, secondaryAnimation) => FiltersPage(
-          animation: animation,
-          filters: _filters,
-          onFiltersUpdated: (filters) {
-            _filters = filters;
-            _filterItems();
-          },
-        ),
+        pageBuilder: pageBuilder,
         transitionsBuilder: (context, animation, secondaryAnimation, child) => SlideTransition(
           position: Tween<Offset>(
-            begin: Offset(1, 0), // Slide from right
-            end: Offset(0, 0),
+            begin: startOffset,
+            end: const Offset(0, 0),
           ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
           child: child,
         ),
@@ -106,9 +103,29 @@ class _HomePageState extends State<HomePage> { // todo: check Set
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-
                 Row(
                   children: [
+                    ElevatedButton(
+                      onPressed: () => _openSideSheet(
+                        context,
+                        const Offset(-1, 0),
+                        (context, animation, secondaryAnimation) => LocationsPage(
+                          animation: animation,
+                          currentLocation: _currentLocation,
+                          onLocationUpdated: (location) {
+                            setState(() {
+                              _currentLocation = location;
+                              _filters.requiredItems.retainWhere((item) => _currentLocation.getAvailableItems().contains(item));
+                            });
+                            _filterItems();
+                          },
+                        ),
+                      ),
+                      child: const Text('Locations'),
+                    ),
+
+                    const HorizontalSizedBox(),
+
                     Expanded(
                       child: TextField(
                         keyboardType: const TextInputType.numberWithOptions(
@@ -126,7 +143,19 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                     const HorizontalSizedBox(),
 
                     ElevatedButton(
-                      onPressed: () => _openSideSheet(context),
+                      onPressed: () => _openSideSheet(
+                        context,
+                        const Offset(1, 0),
+                        (context, animation, secondaryAnimation) => FiltersPage(
+                          animation: animation,
+                          location: _currentLocation,
+                          filters: _filters,
+                          onFiltersUpdated: (filters) {
+                            _filters = filters;
+                            _filterItems();
+                          }
+                        ),
+                      ),
                       child: const Text('Filters'),
                     ),
                   ],
@@ -138,9 +167,9 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                   children: [
                     Text('Items : ${filteredItems.length}'),
                     Spacer(),
-                    Text('Calories : $currentCalories kcal'),
+                    Text('Calories : $_currentCalories kcal'),
                     Spacer(),
-                    Text('Price : $currentPrice €'),
+                    Text('Price : $_currentPrice €'),
                   ]
                 ),
 

@@ -9,4 +9,12 @@ class Item {
   final double calories;
   final double price;
   final String imagePath;
+
+  @override
+  bool operator==(Object other) =>
+    identical(this, other) ||
+    other is Item && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

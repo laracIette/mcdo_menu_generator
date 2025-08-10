@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
-import 'package:mcdo_menu_generator/items.dart';
+import 'package:mcdo_menu_generator/location.dart';
 import 'package:mcdo_menu_generator/utils.dart';
 
 class FiltersPage extends StatefulWidget {
-  const FiltersPage({super.key, required this.animation, required this.onFiltersUpdated, required this.filters});
+  const FiltersPage({super.key, required this.animation, required this.location, required this.onFiltersUpdated, required this.filters});
 
   final Animation<double> animation;
+  final Location location;
   final void Function(Filters) onFiltersUpdated;
   final Filters filters;
 
@@ -23,6 +24,7 @@ enum DropdownState {
 
 class _FiltersPageState extends State<FiltersPage> {
   Filters get _filters => widget.filters;
+  Location get _location => widget.location;
 
   final Map<ItemType, DropdownState> dropdownStates = {};
 
@@ -102,7 +104,7 @@ class _FiltersPageState extends State<FiltersPage> {
                         title: Text('Filters'),
                         actions: [
                           Padding(
-                            padding: const EdgeInsets.only(right: 8.0), // adjust padding here
+                            padding: const EdgeInsets.only(right: 8.0),
                             child: IconButton(
                               icon: Icon(Icons.close),
                               onPressed: () => Navigator.pop(context),
@@ -146,14 +148,15 @@ class _FiltersPageState extends State<FiltersPage> {
 
                                   const VerticalSizedBox(),
 
-                                  ...items.where((item) => item.type == itemType && dropdownStates[itemType] == DropdownState.opened)
+                                  ..._location.getAvailableItems()
+                                    .where((item) => item.type == itemType && dropdownStates[itemType] == DropdownState.opened)
                                     .map((item) => InkWell(
                                       key: ValueKey(item),
                                       onTap: () => _switchRequiredItem(item),
                                       child: Container(
                                         color: _filters.requiredItems.contains(item)
-                                          ? Colors.blue.withValues(alpha: 0.2) // selected background
-                                          : Colors.transparent,                // unselected background
+                                          ? Colors.blue.withValues(alpha: 0.2)
+                                          : Colors.transparent,
                                         padding: const EdgeInsets.all(8.0),
                                         child: Row(
                                           children: [

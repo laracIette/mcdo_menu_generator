@@ -1,26 +1,53 @@
+import 'dart:io';
+
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 class Location {
-  const Location({required this.id, required this.name});
+  Location({required this.id, required this.name});
 
   final int id;
   final String name;
 
-  List<Item> getAvailableItems() => id == 0 ? [] : [
-    Item(id: 0, name: "Big Mac", type: ItemType.burger, calories: 530.0, price: 7.0, imagePath: "assets/images/burger.jpg"),
-    Item(id: 1, name: "Shrimp Filet", type: ItemType.burger, calories: 443.0, price: 6.5, imagePath: "assets/images/burger.jpg"),
-    Item(id: 2, name: "Teriyaki Chicken", type: ItemType.burger, calories: 468.0, price: 8.0, imagePath: "assets/images/burger.jpg"),
-    Item(id: 3, name: "Filet-O-Fish", type: ItemType.burger, calories: 329.0, price: 6.0, imagePath: "assets/images/burger.jpg"),
-    Item(id: 4, name: "Croque McDo", type: ItemType.burger, calories: 255.0, price: 4.5, imagePath: "assets/images/burger.jpg"),
-    Item(id: 5, name: "Cheeseburger", type: ItemType.burger, calories: 300.0, price: 3.5, imagePath: "assets/images/burger.jpg"),
-    Item(id: 6, name: "Big Arch", type: ItemType.burger, calories: 1076.0, price: 9.5, imagePath: "assets/images/burger.jpg"),
-    Item(id: 7, name: "4 McNuggets", type: ItemType.nuggets, calories: 180.0, price: 3.0, imagePath: "assets/images/nuggets.png"),
-    Item(id: 8, name: "6 McNuggets", type: ItemType.nuggets, calories: 270.0, price: 4.0, imagePath: "assets/images/nuggets.png"),
-    Item(id: 9, name: "9 McNuggets", type: ItemType.nuggets, calories: 405.0, price: 5.0, imagePath: "assets/images/nuggets.png"),
-    Item(id: 10, name: "20 McNuggets", type: ItemType.nuggets, calories: 900.0, price: 10.0, imagePath: "assets/images/nuggets.png"),
-    Item(id: 11, name: "Salad", type: ItemType.salad, calories: 400.0, price: 10.0, imagePath: "assets/images/salad.jpg"),
-  ];
+  late final Future<List<Item>> availableItems = getAvailableItems();
+
+  Future<List<Item>> getAvailableItems() async {
+    final url = Uri.parse('https://ws.mcdonalds.fr/api/product/99000336?eatType=EAT_IN&responseGroups=RG.PRODUCT.DEFAULT&responseGroups=RG.PRODUCT.RESTAURANT_STATUS&responseGroups=RG.PRODUCT.PICTURES&responseGroups=RG.PRODUCT.CHOICE_DETAILS&responseGroups=RG.PRODUCT.INGREDIENTS&responseGroups=RG.PRODUCT.NUTRITIONAL_VALUES&responseGroups=RG.PRODUCT.ALLERGENS&responseGroups=RG.PRODUCT.CAPPING&responseGroups=RG.PRODUCT.TIP&restaurantRef=$id');
+    final response = await http.get(url);
+
+    final List<Item> result = [];
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final choices = data['choices'] as List;
+
+      for (var choice in choices) {
+        final products = choice['products'] as List;
+
+        result.addAll(products.map((product) {
+          final ref = product['ref'] as String;
+          final designation = product['designation'] as String;
+          final nultritionalValues = product['nutritionalValues'] as List;
+          final cal = nultritionalValues.firstWhere((nut) => nut['ref'] as String == 'CAL');
+          final price = product['price'] as double;
+
+          return Item(
+            id: int.parse(ref),
+            name: designation,
+            calories: cal['value'],
+            price: price / 150.0,
+            type: ItemType.burger,
+            imagePath: "assets/images/burger.jpg",
+          );
+        }));
+      }
+    }
+
+    return result;
+  }
 
   double getDistance() => 0.0;
 

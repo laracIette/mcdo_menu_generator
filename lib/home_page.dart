@@ -17,15 +17,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> { // todo: check Set
   double _targetCalories = 0.0;
-
   double _currentCalories = 0.0;
   double _currentPrice = 0.0;
 
   Filters _filters = Filters();
-
   List<Item> filteredItems = [];
 
   Location _currentLocation = Location(id: 0, name: "None");
+  Future<List<Item>> get _itemsFuture => _currentLocation.availableItems;
+  List<Item> _availableItems = [];
 
   void _filterItems() {
     setState(() {
@@ -38,10 +38,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
         _currentPrice += item.price;
       }
 
-      final List<Item> sortedItems = _currentLocation.getAvailableItems().toList();
-      sortedItems.sort((a, b) => b.calories.compareTo(a.calories));
-
-      for (var item in sortedItems) {
+      for (var item in _availableItems) {
         // ignore not allowed item type
         if (!_filters.allowedItemTypes.contains(item.type)) {
           continue;
@@ -115,7 +112,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                           onLocationUpdated: (location) {
                             setState(() {
                               _currentLocation = location;
-                              _filters.requiredItems.retainWhere((item) => _currentLocation.getAvailableItems().contains(item));
+                              _filters.requiredItems.retainWhere((item) => _availableItems.contains(item));
                             });
                             _filterItems();
                           },
@@ -148,7 +145,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                         const Offset(1, 0),
                         (context, animation, secondaryAnimation) => FiltersPage(
                           animation: animation,
-                          location: _currentLocation,
+                          availableItems: _availableItems,
                           filters: _filters,
                           onFiltersUpdated: (filters) {
                             _filters = filters;
@@ -175,33 +172,51 @@ class _HomePageState extends State<HomePage> { // todo: check Set
 
                 const VerticalSizedBox(),
 
-                Expanded(
-                  child: ListView(
-                    children: [
-                      ...filteredItems.map(
-                        (item) => Row(
-                          key: ValueKey(item.name),
+                FutureBuilder(
+                  future: _itemsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(child: Text('No items found'));
+                    }
+                    else {
+                      _availableItems = snapshot.data!;
+                      _availableItems.sort((a, b) => b.calories.compareTo(a.calories));
+                      return Expanded(
+                        child: ListView(
                           children: [
-                            Image.asset(
-                              item.imagePath,
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
+                            ...filteredItems.map(
+                              (item) => Row(
+                                key: ValueKey(item.name),
+                                children: [
+                                  Image.asset(
+                                    item.imagePath,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Spacer(),
+                                  Column(
+                                    children: [
+                                      Text(item.name),
+                                      Text('${item.calories} kcal'),
+                                    ],
+                                  ),
+                                  Spacer(),
+                                  Text('${item.price} €'),
+                                ],
+                              )
                             ),
-                            Spacer(),
-                            Column(
-                              children: [
-                                Text(item.name),
-                                Text('${item.calories} kcal'),
-                              ],
-                            ),
-                            Spacer(),
-                            Text('${item.price} €'),
-                          ],
-                        )
-                      ),
-                    ]
-                  ),
+                          ]
+                        ),
+                      );
+                    }
+                  },
                 ),
               ],
             ),

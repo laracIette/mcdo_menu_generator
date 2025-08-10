@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
-import 'package:mcdo_menu_generator/location.dart';
 import 'package:mcdo_menu_generator/utils.dart';
 
 class FiltersPage extends StatefulWidget {
-  const FiltersPage({super.key, required this.animation, required this.location, required this.onFiltersUpdated, required this.filters});
+  const FiltersPage({super.key, required this.animation, required this.availableItems, required this.onFiltersUpdated, required this.filters});
 
   final Animation<double> animation;
-  final Location location;
+  final List<Item> availableItems;
   final void Function(Filters) onFiltersUpdated;
   final Filters filters;
 
@@ -24,7 +23,7 @@ enum DropdownState {
 
 class _FiltersPageState extends State<FiltersPage> {
   Filters get _filters => widget.filters;
-  Location get _location => widget.location;
+  List<Item> get _availableItems => widget.availableItems;
 
   final Map<ItemType, DropdownState> dropdownStates = {};
 
@@ -148,7 +147,7 @@ class _FiltersPageState extends State<FiltersPage> {
 
                                   const VerticalSizedBox(),
 
-                                  ..._location.getAvailableItems()
+                                  ..._availableItems
                                     .where((item) => item.type == itemType && dropdownStates[itemType] == DropdownState.opened)
                                     .map((item) => InkWell(
                                       key: ValueKey(item),

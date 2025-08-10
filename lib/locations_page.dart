@@ -20,8 +20,8 @@ class _LocationsPageState extends State<LocationsPage> {
 
   List<Location> _getLocations() {
     final Set<Location> locations = {
-      Location(id: 335245, name: "McDo Zero"),
-      Location(id: 546456, name: "McDo One"),
+      Location(id: 1717, name: "MOI"),
+      Location(id: 208, name: "Compans-Cafarelli"),
     };
     return locations.toList()..sort((a, b) => a.getDistance().compareTo(b.getDistance()));
   }

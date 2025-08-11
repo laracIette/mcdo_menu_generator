@@ -68,19 +68,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
-        systemNavigationBarColor: const Color.fromARGB(255, 251, 248, 255),
-        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: brightness == Brightness.dark
+          ? const Color.fromARGB(255, 19, 19, 24)
+          : const Color.fromARGB(255, 251, 248, 255),
+        systemNavigationBarIconBrightness: brightness == Brightness.dark
+          ? Brightness.light
+          : Brightness.dark,
       ),
     );
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(

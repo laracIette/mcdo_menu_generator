@@ -13,8 +13,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'McDo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 73, 76, 105)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 73, 76, 105),
+          brightness: Brightness.light,
+        ),
       ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 26, 26, 52),
+          brightness: Brightness.dark,
+        ),
+      ),
+      themeMode: ThemeMode.system,
       home: const HomePage(),
       debugShowCheckedModeBanner: false,
     );

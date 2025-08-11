@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:mcdo_menu_generator/location.dart';
 
 typedef LocationUpdatedFunction = Function(Location);
@@ -18,14 +19,34 @@ class _LocationsPageState extends State<LocationsPage> {
   LocationUpdatedFunction get _onLocationUpdated => widget.onLocationUpdated;
   Location get _currentLocation => widget.currentLocation;
 
+  late final Future<List<Location>> _locationsFuture = _getLocations();
+  List<Location> _locations = [];
+
   bool _showIds = false;
 
-  List<Location> _getLocations() {
-    final Set<Location> locations = {
-      Location(id: 1717, name: "MOI"),
-      Location(id: 208, name: "Compans-Cafarelli"),
-    };
-    return locations.toList()..sort((a, b) => a.getDistance().compareTo(b.getDistance()));
+  Future<List<Location>> _getLocations() async {
+    final url = Uri.parse('https://www.mcdonalds.fr/liste-restaurants-mcdonalds-france');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final html = response.body;
+
+      // Regex: captures name and id
+      final regex = RegExp(
+        r'https://www\.mcdonalds\.fr/restaurants/([a-z0-9\-]+)/(\d+)',
+        caseSensitive: false,
+      );
+
+      final locations = regex.allMatches(html)
+        .map((match) => Location(
+          id: int.tryParse(match.group(2) ?? '') ?? 0,
+          name: match.group(1) ?? 'Error',
+        )).toSet();
+
+      return locations.toList();
+    }
+
+    return [];
   }
 
   @override
@@ -83,38 +104,56 @@ class _LocationsPageState extends State<LocationsPage> {
                           ],
                         ),
 
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                ..._getLocations().map((location) => InkWell(
-                                  key: ValueKey(location),
-                                  onTap: () {
-                                    _onLocationUpdated(location);
-                                    Navigator.pop(context);
-                                  },
-                                  child: Container(
-                                    color: _currentLocation == location
-                                      ? Colors.blue.withValues(alpha: 0.2)
-                                      : Colors.transparent,
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      spacing: 16.0,
-                                      children: [
-                                        Text(location.name),
-                                        if (_showIds) Text(
-                                          location.id.toString(),
-                                          style: TextStyle(color: Colors.grey),
+                        FutureBuilder(
+                          future: _locationsFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            else if (snapshot.hasError) {
+                              return Center(child: Text('Error: ${snapshot.error}'));
+                            }
+                            else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return Center(child: Text('No items found'));
+                            }
+                            else {
+                              _locations = snapshot.data!;
+                              _locations.sort((a, b) => a.getDistance().compareTo(b.getDistance()));
+                              return Expanded(
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      ..._locations.map((location) => InkWell(
+                                        key: ValueKey(location),
+                                        onTap: () {
+                                          _onLocationUpdated(location);
+                                          Navigator.pop(context);
+                                        },
+                                        child: Container(
+                                          color: _currentLocation == location
+                                            ? Colors.blue.withValues(alpha: 0.2)
+                                            : Colors.transparent,
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            spacing: 16.0,
+                                            children: [
+                                              Text(location.name),
+                                              if (_showIds) Text(
+                                                location.id.toString(),
+                                                style: TextStyle(color: Colors.grey),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                )),
-                              ],
-                            )
-                          ),
+                                      )),
+                                    ],
+                                  )
+                                ),
+                              );
+                            }
+                          }
                         ),
-                      ]
+                      ],
                     ),
                   ),
                 ),

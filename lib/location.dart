@@ -13,10 +13,9 @@ class Location {
   late final Future<List<Item>> availableItems = getAvailableItems();
 
   Future<List<Item>> getAvailableItems() async {
+
     final url = Uri.parse('https://ws.mcdonalds.fr/api/product/99000336?eatType=EAT_IN&responseGroups=RG.PRODUCT.DEFAULT&responseGroups=RG.PRODUCT.RESTAURANT_STATUS&responseGroups=RG.PRODUCT.PICTURES&responseGroups=RG.PRODUCT.CHOICE_DETAILS&responseGroups=RG.PRODUCT.INGREDIENTS&responseGroups=RG.PRODUCT.NUTRITIONAL_VALUES&responseGroups=RG.PRODUCT.ALLERGENS&responseGroups=RG.PRODUCT.CAPPING&responseGroups=RG.PRODUCT.TIP&restaurantRef=$id');
     final response = await http.get(url);
-
-    final List<Item> result = [];
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -24,6 +23,8 @@ class Location {
 
       for (var choice in choices) {
         final products = choice['products'] as List;
+
+        final List<Item> result = [];
 
         return result..addAll(products.map((product) { // skip
           final ref = product['ref'] as String;
@@ -44,7 +45,7 @@ class Location {
       }
     }
 
-    return result;
+    return [];
   }
 
   double getDistance() => 0.0;

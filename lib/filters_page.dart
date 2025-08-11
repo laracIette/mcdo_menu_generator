@@ -110,7 +110,7 @@ class _FiltersPageState extends State<FiltersPage> {
                                     child: Row(
                                       spacing: 16.0,
                                       children: [
-                                        Image.asset(
+                                        Image.network(
                                           item.imagePath,
                                           width: 80,
                                           height: 80,

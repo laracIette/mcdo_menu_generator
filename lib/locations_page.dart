@@ -47,7 +47,6 @@ class _LocationsPageState extends State<LocationsPage> {
             .map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1))
             .join(' ')
             ?? 'Error',
-          url: 'https://www.mcdonalds.fr/restaurants/${match.group(1)}/${match.group(2)}',
         )).toSet();
 
       return locations.toList();
@@ -119,7 +118,7 @@ class _LocationsPageState extends State<LocationsPage> {
                             }
                             else {
                               _locations = snapshot.data!;
-                              //_locations.sort((a, b) => a.getDistance().compareTo(b.getDistance()));
+                              //_locations.sort((a, b) => a.distance.compareTo(b.distance));
                               return Expanded(
                                 child: ListView(
                                   children: [

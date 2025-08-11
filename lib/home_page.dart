@@ -15,49 +15,39 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   double _targetCalories = 0.0;
-  double _currentCalories = 0.0;
-  double _currentPrice = 0.0;
 
   Filters _filters = Filters();
-  List<Item> filteredItems = [];
 
-  Location _currentLocation = Location(id: 0, name: '', url: '');
+  Location _currentLocation = Location(id: 0, name: '');
   Future<List<Item>> get _itemsFuture => _currentLocation.availableItems;
-  List<Item> _availableItems = [];
 
-  void _filterItems() {
-    setState(() {
-      filteredItems = _filters.requiredItems.toList();
-      _currentCalories = 0.0;
-      _currentPrice = 0.0;
+  List<Item> _getFilteredItems(List<Item> availableItems) {
+    availableItems.sort((a, b) => b.value.compareTo(a.value));
 
-      for (var item in filteredItems) {
-        _currentCalories += item.calories;
-        _currentPrice += item.price;
+    final filteredItems = _filters.requiredItems.toList();
+
+    var currentCalories = 0.0;
+    for (var item in filteredItems) {
+      currentCalories += item.calories;
+    }
+
+    for (var item in availableItems) {
+      // ignore already added required item
+      if (_filters.requiredItems.contains(item)) {
+        continue;
       }
 
-      for (var item in _availableItems) {
-        // ignore already added required item
-        if (_filters.requiredItems.contains(item)) {
-          continue;
-        }
-
-        // ignore item if total calories too high
-        if (_currentCalories + item.calories > _targetCalories) {
-          continue;
-        }
-
-        _currentCalories += item.calories;
-        _currentPrice += item.price;
-
-        filteredItems.add(item);
+      // ignore item if total calories too high
+      if (currentCalories + item.calories > _targetCalories) {
+        continue;
       }
-    });
-  }
 
-  void _updateTargetCalories(String input) {
-    _targetCalories = double.tryParse(input) ?? 0.0;
-    _filterItems();
+      currentCalories += item.calories;
+
+      filteredItems.add(item);
+    }
+
+    return filteredItems;
   }
 
   void _openSideSheet(BuildContext context, Offset startOffset, RoutePageBuilder pageBuilder) {
@@ -116,13 +106,7 @@ class _HomePageState extends State<HomePage> {
                         (context, animation, secondaryAnimation) => LocationsPage(
                           animation: animation,
                           currentLocation: _currentLocation,
-                          onLocationUpdated: (location) {
-                            setState(() {
-                              _currentLocation = location;
-                              _filters.requiredItems.retainWhere((item) => _availableItems.contains(item));
-                            });
-                            _filterItems();
-                          },
+                          onLocationUpdated: (location) => setState(() => _currentLocation = location),
                         ),
                       ),
                       child: const Text('Location'),
@@ -130,34 +114,90 @@ class _HomePageState extends State<HomePage> {
 
                     Spacer(),
 
-                    ElevatedButton(
-                      onPressed: () => _openSideSheet(
-                        context,
-                        const Offset(1, 0),
-                        (context, animation, secondaryAnimation) => FiltersPage(
-                          animation: animation,
-                          availableItems: _availableItems,
-                          filters: _filters,
-                          onFiltersUpdated: (filters) {
-                            _filters = filters;
-                            _filterItems();
-                          }
-                        ),
-                      ),
-                      child: const Text('Filter'),
+                    FutureBuilder(
+                      future: _itemsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              ElevatedButton(
+                                onPressed: null,
+                                child: Text('Filter'),
+                              ),
+                              Center(
+                                child: SizedBox(
+                                  width: 16.0,
+                                  height: 16.0,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const ElevatedButton(
+                            onPressed: null,
+                            child: Text('Filter')
+                          );
+                        }
+                        else {
+                          return ElevatedButton(
+                            onPressed: () => _openSideSheet(
+                              context,
+                              const Offset(1, 0),
+                              (context, animation, secondaryAnimation) => FiltersPage(
+                                animation: animation,
+                                availableItems: snapshot.data!,
+                                filters: _filters,
+                                onFiltersUpdated: (filters) => setState(() =>  _filters = filters),
+                              ),
+                            ),
+                            child: const Text('Filter')
+                          );
+                        }
+                      }
                     ),
                   ],
                 ),
 
-                Row(
-                  children: [
-                    Text('Items : ${filteredItems.length}'),
-                    Spacer(),
-                    Text('Calories : $_currentCalories kcal'),
-                    Spacer(),
-                    Text('Price : ${_currentPrice.toStringAsFixed(2)} €'),
-                  ]
+                FutureBuilder(
+                  future: _itemsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting
+                      || snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Row(
+                        children: [
+                          Text('Calories : 0 kcal'),
+                          Spacer(),
+                          Text('Price : 0.00 €'),
+                        ]
+                      );
+                    }
+                    else {
+                      final filteredItems = _getFilteredItems(snapshot.data!);
+
+                      var currentCalories = 0.0;
+                      var currentPrice = 0.0;
+                      for (var item in filteredItems) {
+                        currentCalories += item.calories;
+                        currentPrice += item.price;
+                      }
+
+                      return Row(
+                        children: [
+                          Text('Calories : $currentCalories kcal'),
+                          Spacer(),
+                          Text('Price : ${currentPrice.toStringAsFixed(2)} €'),
+                        ]
+                      );
+                    }
+                  }
                 ),
+
+
 
                 FutureBuilder(
                   future: _itemsFuture,
@@ -172,8 +212,7 @@ class _HomePageState extends State<HomePage> {
                       return const Expanded(child:Center(child: Text('No items found')));
                     }
                     else {
-                      _availableItems = snapshot.data!;
-                      _availableItems.sort((a, b) => b.calories.compareTo(a.calories));
+                      final filteredItems = _getFilteredItems(snapshot.data!);
                       return Expanded(
                         child: ListView(
                           children: [
@@ -182,7 +221,7 @@ class _HomePageState extends State<HomePage> {
                                 key: ValueKey(item.id),
                                 spacing: 16.0,
                                 children: [
-                                  Image.asset(
+                                  Image.network(
                                     item.imagePath,
                                     width: 80,
                                     height: 80,
@@ -209,7 +248,7 @@ class _HomePageState extends State<HomePage> {
                               )
                             ),
                           ]
-                        ),
+                        )
                       );
                     }
                   },
@@ -224,7 +263,7 @@ class _HomePageState extends State<HomePage> {
                     labelText: 'Target Calories',
                     border: OutlineInputBorder(),
                   ),
-                  onChanged: _updateTargetCalories,
+                  onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
                 ),
               ],
             ),

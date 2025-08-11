@@ -5,53 +5,50 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class Location {
-  Location({required this.id, required this.name, required this.url});
+  Location({required this.id, required this.name});
+
+  //double get distance => 0.0;
 
   final int id;
   final String name;
-  final String url;
+
+  late final String jsonUrl = 'https://ws.mcdonalds.fr/api/catalog/14/products?eatType=TAKE_OUT&responseGroups=RG.PRODUCT.DEFAULT&responseGroups=RG.PRODUCT.CHOICE_DETAILS&responseGroups=RG.PRODUCT.WORKING_HOURS&responseGroups=RG.PRODUCT.PICTURES&responseGroups=RG.PRODUCT.RESTAURANT_STATUS&responseGroups=RG.PRODUCT.CAPPING&responseGroups=RG.PRODUCT.TIP&responseGroups=RG.PRODUCT.NUTRITIONAL_VALUES&restaurantRef=$id';
+  //late final String commanderUrl = 'https://www.mcdonalds.fr/restaurants/$id/commander';
 
   late final Future<List<Item>> availableItems = getAvailableItems();
 
   Future<List<Item>> getAvailableItems() async {
-
-    final url = Uri.parse('https://ws.mcdonalds.fr/api/product/99000336?eatType=EAT_IN&responseGroups=RG.PRODUCT.DEFAULT&responseGroups=RG.PRODUCT.RESTAURANT_STATUS&responseGroups=RG.PRODUCT.PICTURES&responseGroups=RG.PRODUCT.CHOICE_DETAILS&responseGroups=RG.PRODUCT.INGREDIENTS&responseGroups=RG.PRODUCT.NUTRITIONAL_VALUES&responseGroups=RG.PRODUCT.ALLERGENS&responseGroups=RG.PRODUCT.CAPPING&responseGroups=RG.PRODUCT.TIP&restaurantRef=$id');
-    final response = await http.get(url);
+    final uri = Uri.parse(jsonUrl);
+    final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final choices = data['choices'] as List;
+      final products = data as List;
 
       final List<Item> items = [];
 
-      for (var choice in choices) {
-        final products = choice['products'] as List;
-
-        items.addAll(products.map((product) {
+      items.addAll(products.map((product) {
           final ref = product['ref'] as String;
           final designation = product['designation'] as String;
           final nultritionalValues = product['nutritionalValues'] as List;
           final cal = nultritionalValues.firstWhere((nut) => nut['ref'] as String == 'CAL');
           final price = product['price'] as double;
+          final imageUrl = product['pictures'][0]['url'] as String;
 
           return Item(
             id: int.parse(ref),
             name: designation,
             calories: cal['value'],
-            price: price / 150.0,
+            price: price / 100.0,
             type: ItemType.burger,
-            imagePath: "assets/images/burger.jpg",
+            imagePath: 'https://media.mcdonalds.fr$imageUrl',
           );
-        }));
-      }
 
+      }));
       return items;
     }
-
     return [];
   }
-
-  double getDistance() => 0.0;
 
   @override
   bool operator==(Object other) =>

@@ -10,6 +10,9 @@ class Item {
   final double price;
   final String imagePath;
 
+  // calories per euro
+  double get value => calories / price;
+
   @override
   bool operator==(Object other) =>
     identical(this, other) ||

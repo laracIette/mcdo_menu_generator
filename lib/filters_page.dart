@@ -73,92 +73,96 @@ class _FiltersPageState extends State<FiltersPage> {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
-                      spacing: 16.0,
-                      children: [
-                        AppBar(
-                          automaticallyImplyLeading: false,
-                          title: const Text('Required Items'),
-                          actions: [
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ],
-                        ),
-
-                        Row(
                           spacing: 16.0,
                           children: [
-                            Expanded(
-                              child: TextField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Search Item',
-                                  border: OutlineInputBorder(),
+                            AppBar(
+                              automaticallyImplyLeading: false,
+                              title: const Text('Required Items'),
+                              actions: [
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () => Navigator.pop(context),
                                 ),
-                                onChanged: (input) => setState(() => _input = input),
-                              ),
+                              ],
                             ),
+
                             ElevatedButton(
                               onPressed: () => setState(() => _showIds = !_showIds),
                               child: Text(_showIds ? 'Hide IDs' : 'Show IDs')
                             ),
-                          ],
-                        ),
 
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              spacing: 16.0,
-                              children: [
-                                ..._availableItems
-                                  .where((item) => _input.isEmpty
-                                    || item.id == int.tryParse(_input)
-                                    || item.name.toLowerCase().contains(_input.toLowerCase())
-                                  )
-                                  .map((item) => InkWell(
-                                    key: ValueKey(item),
-                                    onTap: () => _switchRequiredItem(item),
-                                    child: Container(
-                                      color: _filters.requiredItems.contains(item)
-                                        ? Colors.blue.withValues(alpha: 0.2)
-                                        : Colors.transparent,
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        children: [
-                                          Image.asset(
-                                            item.imagePath,
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.cover,
-                                          ),
-                                          Spacer(),
-                                          Column(
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  spacing: 16.0,
+                                  children: [
+                                    ..._availableItems
+                                      .where((item) => _input.isEmpty
+                                        || item.id == int.tryParse(_input)
+                                        || item.name.toLowerCase().contains(_input.toLowerCase())
+                                      )
+                                      .map((item) => InkWell(
+                                        key: ValueKey(item.id),
+                                        onTap: () => _switchRequiredItem(item),
+                                        child: Container(
+                                          color: _filters.requiredItems.contains(item)
+                                            ? Colors.blue.withValues(alpha: 0.2)
+                                            : Colors.transparent,
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            spacing: 16.0,
                                             children: [
-                                              Row(
-                                                spacing: 16.0,
-                                                children: [
-                                                  Text(item.name),
-                                                  if (_showIds) Text(
-                                                    item.id.toString(),
-                                                    style: TextStyle(color: Colors.grey),
-                                                  ),
-                                                ],
+                                              Image.asset(
+                                                item.imagePath,
+                                                width: 80,
+                                                height: 80,
+                                                fit: BoxFit.cover,
                                               ),
-                                              Text('${item.calories} kcal'),
+
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text.rich(
+                                                      TextSpan(
+                                                        children: [
+                                                          TextSpan(
+                                                            text: item.name,
+                                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                                          ),
+                                                          if (_showIds) TextSpan(
+                                                            text: '  ${item.id}',
+                                                            style: const TextStyle(color: Colors.grey),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      softWrap: true,
+                                                      overflow: TextOverflow.visible,
+                                                    ),
+                                                    Text('${item.calories} kcal'),
+                                                  ],
+                                                ),
+                                              ),
+
+                                              Text('${item.price.toStringAsFixed(2)} €'),
                                             ],
                                           ),
-                                          Spacer(),
-                                          Text('${item.price.toStringAsFixed(2)} €'),
-                                        ],
-                                      ),
-                                    ),
-                                  )),
-                              ],
+                                        ),
+                                      )),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
+
+                            TextField(
+                              decoration: const InputDecoration(
+                                labelText: 'Search Item',
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (input) => setState(() => _input = input),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                   ),
                 ),
               ),

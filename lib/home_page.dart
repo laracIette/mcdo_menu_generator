@@ -115,19 +115,7 @@ class _HomePageState extends State<HomePage> {
                       child: const Text('Location'),
                     ),
 
-                    Expanded(
-                      child: TextField(
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                          signed: false,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Target Calories',
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: _updateTargetCalories,
-                      ),
-                    ),
+                    Spacer(),
 
                     ElevatedButton(
                       onPressed: () => _openSideSheet(
@@ -162,13 +150,13 @@ class _HomePageState extends State<HomePage> {
                   future: _itemsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                      return const Expanded(child: Center(child: CircularProgressIndicator()));
                     }
                     else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
+                      return Expanded(child:Center(child: Text('Error: ${snapshot.error}')));
                     }
                     else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(child: Text('No items found'));
+                      return const Expanded(child:Center(child: Text('No items found')));
                     }
                     else {
                       _availableItems = snapshot.data!;
@@ -178,22 +166,29 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             ...filteredItems.map(
                               (item) => Row(
-                                key: ValueKey(item.name),
+                                key: ValueKey(item.id),
                                 children: [
                                   Image.asset(
                                     item.imagePath,
-                                    width: 100,
-                                    height: 100,
+                                    width: 80,
+                                    height: 80,
                                     fit: BoxFit.cover,
                                   ),
+
                                   Spacer(),
+
                                   Column(
                                     children: [
-                                      Text(item.name),
+                                      Text(
+                                        item.name,
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      ),
                                       Text('${item.calories} kcal'),
                                     ],
                                   ),
+
                                   Spacer(),
+
                                   Text('${item.price.toStringAsFixed(2)} €'),
                                 ],
                               )
@@ -203,6 +198,18 @@ class _HomePageState extends State<HomePage> {
                       );
                     }
                   },
+                ),
+
+                TextField(
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: false,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Target Calories',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: _updateTargetCalories,
                 ),
               ],
             ),

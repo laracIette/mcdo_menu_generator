@@ -75,8 +75,8 @@ class _LocationsPageState extends State<LocationsPage> {
               child: Material(
                 elevation: 12.0,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20.0),
-                  bottomLeft: Radius.circular(20.0),
+                  topRight: Radius.circular(20.0),
+                  bottomRight: Radius.circular(20.0),
                 ),
                 child: GestureDetector(
                   onHorizontalDragEnd: (details) {
@@ -100,36 +100,22 @@ class _LocationsPageState extends State<LocationsPage> {
                           ],
                         ),
 
-                        Row(
-                          spacing: 16.0,
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Search Location',
-                                  border: OutlineInputBorder(),
-                                ),
-                                onChanged: (input) => setState(() => _input = input),
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => setState(() => _showIds = !_showIds),
-                              child: Text(_showIds ? 'Hide IDs' : 'Show IDs')
-                            ),
-                          ],
+                        ElevatedButton(
+                          onPressed: () => setState(() => _showIds = !_showIds),
+                          child: Text(_showIds ? 'Hide IDs' : 'Show IDs')
                         ),
 
                         FutureBuilder(
                           future: _locationsFuture,
                           builder: (context, snapshot) {
                             if (snapshot.connectionState == ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
+                              return const Expanded(child: Center(child: CircularProgressIndicator()));
                             }
                             else if (snapshot.hasError) {
-                              return Center(child: Text('Error: ${snapshot.error}'));
+                              return Expanded(child: Center(child: Text('Error: ${snapshot.error}')));
                             }
                             else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return Center(child: Text('No items found'));
+                              return const Expanded(child: Center(child: Text('No items found')));
                             }
                             else {
                               _locations = snapshot.data!;
@@ -144,7 +130,7 @@ class _LocationsPageState extends State<LocationsPage> {
                                           || location.name.toLowerCase().contains(_input.toLowerCase())
                                         )
                                         .map((location) => InkWell(
-                                          key: ValueKey(location),
+                                          key: ValueKey(location.id),
                                           onTap: () {
                                             _onLocationUpdated(location);
                                             Navigator.pop(context);
@@ -157,21 +143,37 @@ class _LocationsPageState extends State<LocationsPage> {
                                             child: Row(
                                               spacing: 16.0,
                                               children: [
-                                                Text(location.name),
-                                                if (_showIds) Text(
-                                                  location.id.toString(),
-                                                  style: TextStyle(color: Colors.grey),
+                                                Text.rich(
+                                                  TextSpan(
+                                                    children: [
+                                                      TextSpan(
+                                                        text: location.name,
+                                                      ),
+                                                      if (_showIds) TextSpan(
+                                                        text: '  ${location.id.toString()}',
+                                                        style: const TextStyle(color: Colors.grey),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ],
                                             ),
                                           ),
                                         )),
                                     ],
-                                  )
+                                  ),
                                 ),
                               );
                             }
                           }
+                        ),
+
+                        TextField(
+                          decoration: const InputDecoration(
+                            labelText: 'Search Location',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (input) => setState(() => _input = input),
                         ),
                       ],
                     ),

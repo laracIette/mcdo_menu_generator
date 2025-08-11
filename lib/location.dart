@@ -12,7 +12,9 @@ class Location {
   final int id;
   final String name;
 
-  late final String jsonUrl = 'https://ws.mcdonalds.fr/api/catalog/14/products?eatType=TAKE_OUT&responseGroups=RG.PRODUCT.DEFAULT&responseGroups=RG.PRODUCT.CHOICE_DETAILS&responseGroups=RG.PRODUCT.WORKING_HOURS&responseGroups=RG.PRODUCT.PICTURES&responseGroups=RG.PRODUCT.RESTAURANT_STATUS&responseGroups=RG.PRODUCT.CAPPING&responseGroups=RG.PRODUCT.TIP&responseGroups=RG.PRODUCT.NUTRITIONAL_VALUES&restaurantRef=$id';
+  static final String _orderType = 'EAT_IN';
+
+  late final String jsonUrl = 'https://ws.mcdonalds.fr/api/catalog/14/products?eatType=$_orderType&responseGroups=RG.PRODUCT.DEFAULT&responseGroups=RG.PRODUCT.CHOICE_DETAILS&responseGroups=RG.PRODUCT.WORKING_HOURS&responseGroups=RG.PRODUCT.PICTURES&responseGroups=RG.PRODUCT.RESTAURANT_STATUS&responseGroups=RG.PRODUCT.CAPPING&responseGroups=RG.PRODUCT.TIP&responseGroups=RG.PRODUCT.NUTRITIONAL_VALUES&restaurantRef=$id';
   //late final String commanderUrl = 'https://www.mcdonalds.fr/restaurants/$id/commander';
 
   late final Future<List<Item>> availableItems = getAvailableItems();

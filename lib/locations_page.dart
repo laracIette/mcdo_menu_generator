@@ -138,25 +138,29 @@ class _LocationsPageState extends State<LocationsPage> {
                                             ? Colors.blue.withValues(alpha: 0.2)
                                             : Colors.transparent,
                                           padding: const EdgeInsets.all(8.0),
-                                          child: Row(
-                                            spacing: 16.0,
-                                            children: [
-                                              Text.rich(
-                                                TextSpan(
-                                                  children: [
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text.rich(
                                                     TextSpan(
-                                                      text: location.name,
+                                                      children: [
+                                                        TextSpan(
+                                                          text: location.name,
+                                                        ),
+                                                        if (_showIds)
+                                                          TextSpan(
+                                                            text: '  ${location.id.toString()}',
+                                                            style: const TextStyle(color: Colors.grey),
+                                                          ),
+                                                      ],
                                                     ),
-                                                    if (_showIds) TextSpan(
-                                                      text: '  ${location.id.toString()}',
-                                                      style: const TextStyle(color: Colors.grey),
-                                                    ),
-                                                  ],
+                                                    softWrap: true,
+                                                    overflow: TextOverflow.visible,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
-                                        ),
                                       )),
                                   ],
                                 ),

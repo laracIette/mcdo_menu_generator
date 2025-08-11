@@ -14,9 +14,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'McDo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 85, 73, 105)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 73, 76, 105)),
       ),
-      home: const HomePage(title: 'McDo'),
+      home: const HomePage(),
       debugShowCheckedModeBanner: false,
     );
   }

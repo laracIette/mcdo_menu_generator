@@ -24,6 +24,8 @@ class _LocationsPageState extends State<LocationsPage> {
 
   bool _showIds = false;
 
+  String _input = '';
+
   Future<List<Location>> _getLocations() async {
     final url = Uri.parse('https://www.mcdonalds.fr/liste-restaurants-mcdonalds-france');
     final response = await http.get(url);
@@ -40,7 +42,12 @@ class _LocationsPageState extends State<LocationsPage> {
       final locations = regex.allMatches(html)
         .map((match) => Location(
           id: int.tryParse(match.group(2) ?? '') ?? 0,
-          name: match.group(1) ?? 'Error',
+          name: match.group(1)?.substring(10).replaceAll('-', ' ')
+            .split(' ')
+            .map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1))
+            .join(' ')
+            ?? 'Error',
+          url: 'https://www.mcdonalds.fr/restaurants/${match.group(1)}/${match.group(2)}',
         )).toSet();
 
       return locations.toList();
@@ -96,10 +103,22 @@ class _LocationsPageState extends State<LocationsPage> {
                         Row(
                           spacing: 16.0,
                           children: [
-                            const Text('Show IDs'),
+                            Expanded(
+                              child: TextField(
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                  signed: false,
+                                ),
+                                decoration: const InputDecoration(
+                                  labelText: 'Location',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (input) => setState(() => _input = input),
+                              ),
+                            ),
                             ElevatedButton(
                               onPressed: () => setState(() => _showIds = !_showIds),
-                              child: Text(_showIds.toString()),
+                              child: Text(_showIds ? 'Hide IDs' : 'Show IDs')
                             ),
                           ],
                         ),
@@ -118,34 +137,35 @@ class _LocationsPageState extends State<LocationsPage> {
                             }
                             else {
                               _locations = snapshot.data!;
-                              _locations.sort((a, b) => a.getDistance().compareTo(b.getDistance()));
+                              //_locations.sort((a, b) => a.getDistance().compareTo(b.getDistance()));
                               return Expanded(
                                 child: SingleChildScrollView(
                                   child: Column(
                                     children: [
-                                      ..._locations.map((location) => InkWell(
-                                        key: ValueKey(location),
-                                        onTap: () {
-                                          _onLocationUpdated(location);
-                                          Navigator.pop(context);
-                                        },
-                                        child: Container(
-                                          color: _currentLocation == location
-                                            ? Colors.blue.withValues(alpha: 0.2)
-                                            : Colors.transparent,
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Row(
-                                            spacing: 16.0,
-                                            children: [
-                                              Text(location.name),
-                                              if (_showIds) Text(
-                                                location.id.toString(),
-                                                style: TextStyle(color: Colors.grey),
-                                              ),
-                                            ],
+                                      ..._locations.where((location) => _input.isEmpty || location.id == int.tryParse(_input) || location.name.toLowerCase().contains(_input.toLowerCase()))
+                                        .map((location) => InkWell(
+                                          key: ValueKey(location),
+                                          onTap: () {
+                                            _onLocationUpdated(location);
+                                            Navigator.pop(context);
+                                          },
+                                          child: Container(
+                                            color: _currentLocation == location
+                                              ? Colors.blue.withValues(alpha: 0.2)
+                                              : Colors.transparent,
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              spacing: 16.0,
+                                              children: [
+                                                Text(location.name),
+                                                if (_showIds) Text(
+                                                  location.id.toString(),
+                                                  style: TextStyle(color: Colors.grey),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      )),
+                                        )),
                                     ],
                                   )
                                 ),

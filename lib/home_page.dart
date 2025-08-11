@@ -6,15 +6,13 @@ import 'package:mcdo_menu_generator/location.dart';
 import 'package:mcdo_menu_generator/locations_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
-
-  final String title;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> { // todo: check Set
+class _HomePageState extends State<HomePage> {
   double _targetCalories = 0.0;
   double _currentCalories = 0.0;
   double _currentPrice = 0.0;
@@ -22,7 +20,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
   Filters _filters = Filters();
   List<Item> filteredItems = [];
 
-  Location _currentLocation = Location(id: 0, name: "None");
+  Location _currentLocation = Location(id: 0, name: '', url: '');
   Future<List<Item>> get _itemsFuture => _currentLocation.availableItems;
   List<Item> _availableItems = [];
 
@@ -90,7 +88,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
+          title: Text('McDo ${_currentLocation.name}'),
           centerTitle: true,
         ),
         body: Center(
@@ -119,7 +117,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                           },
                         ),
                       ),
-                      child: const Text('Locations'),
+                      child: const Text('Location'),
                     ),
 
                     Expanded(
@@ -150,7 +148,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                           }
                         ),
                       ),
-                      child: const Text('Filters'),
+                      child: const Text('Filter'),
                     ),
                   ],
                 ),

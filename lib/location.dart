@@ -5,10 +5,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class Location {
-  Location({required this.id, required this.name});
+  Location({required this.id, required this.name, required this.url});
 
   final int id;
   final String name;
+  final String url;
 
   late final Future<List<Item>> availableItems = getAvailableItems();
 

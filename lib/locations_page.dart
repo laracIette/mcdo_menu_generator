@@ -121,47 +121,45 @@ class _LocationsPageState extends State<LocationsPage> {
                               _locations = snapshot.data!;
                               //_locations.sort((a, b) => a.getDistance().compareTo(b.getDistance()));
                               return Expanded(
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      ..._locations
-                                        .where((location) => _input.isEmpty
-                                          || location.id == int.tryParse(_input)
-                                          || location.name.toLowerCase().contains(_input.toLowerCase())
-                                        )
-                                        .map((location) => InkWell(
-                                          key: ValueKey(location.id),
-                                          onTap: () {
-                                            _onLocationUpdated(location);
-                                            Navigator.pop(context);
-                                          },
-                                          child: Container(
-                                            color: _currentLocation == location
-                                              ? Colors.blue.withValues(alpha: 0.2)
-                                              : Colors.transparent,
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              spacing: 16.0,
-                                              children: [
-                                                Text.rich(
-                                                  TextSpan(
-                                                    children: [
-                                                      TextSpan(
-                                                        text: location.name,
-                                                      ),
-                                                      if (_showIds) TextSpan(
-                                                        text: '  ${location.id.toString()}',
-                                                        style: const TextStyle(color: Colors.grey),
-                                                      ),
-                                                    ],
-                                                  ),
+                                child: ListView(
+                                  children: [
+                                    ..._locations
+                                      .where((location) => _input.isEmpty
+                                        || location.id == int.tryParse(_input)
+                                        || location.name.toLowerCase().contains(_input.toLowerCase())
+                                      )
+                                      .map((location) => InkWell(
+                                        key: ValueKey(location.id),
+                                        onTap: () {
+                                          _onLocationUpdated(location);
+                                          Navigator.pop(context);
+                                        },
+                                        child: Container(
+                                          color: _currentLocation == location
+                                            ? Colors.blue.withValues(alpha: 0.2)
+                                            : Colors.transparent,
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            spacing: 16.0,
+                                            children: [
+                                              Text.rich(
+                                                TextSpan(
+                                                  children: [
+                                                    TextSpan(
+                                                      text: location.name,
+                                                    ),
+                                                    if (_showIds) TextSpan(
+                                                      text: '  ${location.id.toString()}',
+                                                      style: const TextStyle(color: Colors.grey),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
-                                        )),
-                                    ],
-                                  ),
+                                        ),
+                                      )),
+                                  ],
                                 ),
                               );
                             }

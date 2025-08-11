@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/filters_page.dart';
@@ -72,6 +73,18 @@ class _HomePageState extends State<HomePage> {
           ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
           child: child,
         ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        systemNavigationBarColor: const Color.fromARGB(255, 251, 248, 255),
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
     );
   }
@@ -167,6 +180,7 @@ class _HomePageState extends State<HomePage> {
                             ...filteredItems.map(
                               (item) => Row(
                                 key: ValueKey(item.id),
+                                spacing: 16.0,
                                 children: [
                                   Image.asset(
                                     item.imagePath,
@@ -175,19 +189,20 @@ class _HomePageState extends State<HomePage> {
                                     fit: BoxFit.cover,
                                   ),
 
-                                  Spacer(),
-
-                                  Column(
-                                    children: [
-                                      Text(
-                                        item.name,
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                      Text('${item.calories} kcal'),
-                                    ],
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.name,
+                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                          softWrap: true,
+                                          overflow: TextOverflow.visible,
+                                        ),
+                                        Text('${item.calories} kcal'),
+                                      ],
+                                    ),
                                   ),
-
-                                  Spacer(),
 
                                   Text('${item.price.toStringAsFixed(2)} €'),
                                 ],

@@ -36,11 +36,6 @@ class _HomePageState extends State<HomePage> {
       }
 
       for (var item in _availableItems) {
-        // ignore not allowed item type
-        if (!_filters.allowedItemTypes.contains(item.type)) {
-          continue;
-        }
-
         // ignore already added required item
         if (_filters.requiredItems.contains(item)) {
           continue;

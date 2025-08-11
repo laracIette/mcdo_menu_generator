@@ -22,12 +22,12 @@ class Location {
       final data = jsonDecode(response.body);
       final choices = data['choices'] as List;
 
+      final List<Item> items = [];
+
       for (var choice in choices) {
         final products = choice['products'] as List;
 
-        final List<Item> result = [];
-
-        return result..addAll(products.map((product) { // skip
+        items.addAll(products.map((product) {
           final ref = product['ref'] as String;
           final designation = product['designation'] as String;
           final nultritionalValues = product['nutritionalValues'] as List;
@@ -44,6 +44,8 @@ class Location {
           );
         }));
       }
+
+      return items;
     }
 
     return [];

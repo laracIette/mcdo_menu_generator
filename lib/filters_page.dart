@@ -26,24 +26,12 @@ class _FiltersPageState extends State<FiltersPage> {
 
   final Map<ItemType, DropdownState> dropdownStates = {};
 
-  void _switchDropdownState(ItemType itemType) =>
-    setState(() {
-      dropdownStates[itemType] = dropdownStates[itemType] == DropdownState.opened
-        ? DropdownState.closed
-        : DropdownState.opened;
-    });
+  String _input = '';
+
+  bool _showIds = false;
 
   void _broadcastFiltersUpdated() =>
     widget.onFiltersUpdated(_filters);
-
-  void _switchAllowedItemType(ItemType itemType) {
-    setState(() {
-      if (!_filters.allowedItemTypes.remove(itemType)) {
-        _filters.allowedItemTypes.add(itemType);
-      }
-    });
-    _broadcastFiltersUpdated();
-  }
 
   void _switchRequiredItem(Item item) {
     setState(() {
@@ -52,19 +40,6 @@ class _FiltersPageState extends State<FiltersPage> {
       }
     });
     _broadcastFiltersUpdated();
-  }
-
-  Widget _getItemTypeButton(ItemType itemType) {
-    return Row(
-      children: [
-        Text(itemTypeNames[itemType] ?? 'Error'),
-        Spacer(),
-        ElevatedButton(
-          onPressed: () => _switchAllowedItemType(itemType),
-          child: Text(_filters.allowedItemTypes.contains(itemType).toString()),
-        ),
-      ],
-    );
   }
 
   @override
@@ -85,9 +60,9 @@ class _FiltersPageState extends State<FiltersPage> {
               heightFactor: 1.0,
               child: Material(
                 elevation: 12,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  bottomLeft: Radius.circular(20.0),
                 ),
                 child: GestureDetector(
                   onHorizontalDragEnd: (details) {
@@ -95,84 +70,95 @@ class _FiltersPageState extends State<FiltersPage> {
                       Navigator.pop(context);
                     }
                   },
-                  child: Column(
-                    children: [
-                      AppBar(
-                        automaticallyImplyLeading: false,
-                        title: Text('Filters'),
-                        actions: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: IconButton(
-                              icon: Icon(Icons.close),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      spacing: 16.0,
+                      children: [
+                        AppBar(
+                          automaticallyImplyLeading: false,
+                          title: const Text('Required Items'),
+                          actions: [
+                            IconButton(
+                              icon: const Icon(Icons.close),
                               onPressed: () => Navigator.pop(context),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
 
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            spacing: 16.0,
-                            children: [
-                              ...ItemType.values.map((itemType) => _getItemTypeButton(itemType)),
+                        Row(
+                          spacing: 16.0,
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Search Item',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (input) => setState(() => _input = input),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => setState(() => _showIds = !_showIds),
+                              child: Text(_showIds ? 'Hide IDs' : 'Show IDs')
+                            ),
+                          ],
+                        ),
 
-                              Text('Required Items'),
-
-                              ...ItemType.values.map((itemType) => Column(
-                                key: ValueKey('itemTypeDropdown-$itemType'),
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(itemTypeNames[itemType] ?? 'Error'),
-                                      Spacer(),
-                                      ElevatedButton(
-                                        onPressed: () => _switchDropdownState(itemType),
-                                        child: Text(dropdownStates[itemType] == DropdownState.opened ? '-' : '+')
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              spacing: 16.0,
+                              children: [
+                                ..._availableItems
+                                  .where((item) => _input.isEmpty
+                                    || item.id == int.tryParse(_input)
+                                    || item.name.toLowerCase().contains(_input.toLowerCase())
+                                  )
+                                  .map((item) => InkWell(
+                                    key: ValueKey(item),
+                                    onTap: () => _switchRequiredItem(item),
+                                    child: Container(
+                                      color: _filters.requiredItems.contains(item)
+                                        ? Colors.blue.withValues(alpha: 0.2)
+                                        : Colors.transparent,
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: [
+                                          Image.asset(
+                                            item.imagePath,
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                          Spacer(),
+                                          Column(
+                                            children: [
+                                              Row(
+                                                spacing: 16.0,
+                                                children: [
+                                                  Text(item.name),
+                                                  if (_showIds) Text(
+                                                    item.id.toString(),
+                                                    style: TextStyle(color: Colors.grey),
+                                                  ),
+                                                ],
+                                              ),
+                                              Text('${item.calories} kcal'),
+                                            ],
+                                          ),
+                                          Spacer(),
+                                          Text('${item.price.toStringAsFixed(2)} €'),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-
-                                  ..._availableItems
-                                    .where((item) => item.type == itemType && dropdownStates[itemType] == DropdownState.opened)
-                                    .map((item) => InkWell(
-                                      key: ValueKey(item),
-                                      onTap: () => _switchRequiredItem(item),
-                                      child: Container(
-                                        color: _filters.requiredItems.contains(item)
-                                          ? Colors.blue.withValues(alpha: 0.2)
-                                          : Colors.transparent,
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: [
-                                            Image.asset(
-                                              item.imagePath,
-                                              width: 100,
-                                              height: 100,
-                                              fit: BoxFit.cover,
-                                            ),
-                                            Spacer(),
-                                            Column(
-                                              children: [
-                                                Text(item.name),
-                                                Text('${item.calories} kcal'),
-                                              ],
-                                            ),
-                                            Spacer(),
-                                            Text('${item.price.toStringAsFixed(2)} €'),
-                                          ],
-                                        ),
-                                      ),
-                                    )),
-                                ],
-                              )),
-                            ],
+                                    ),
+                                  )),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

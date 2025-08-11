@@ -22,9 +22,9 @@ class _LocationsPageState extends State<LocationsPage> {
   late final Future<List<Location>> _locationsFuture = _getLocations();
   List<Location> _locations = [];
 
-  bool _showIds = false;
-
   String _input = '';
+
+  bool _showIds = false;
 
   Future<List<Location>> _getLocations() async {
     final url = Uri.parse('https://www.mcdonalds.fr/liste-restaurants-mcdonalds-france');
@@ -105,12 +105,8 @@ class _LocationsPageState extends State<LocationsPage> {
                           children: [
                             Expanded(
                               child: TextField(
-                                keyboardType: const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                  signed: false,
-                                ),
                                 decoration: const InputDecoration(
-                                  labelText: 'Location',
+                                  labelText: 'Search Location',
                                   border: OutlineInputBorder(),
                                 ),
                                 onChanged: (input) => setState(() => _input = input),
@@ -142,7 +138,11 @@ class _LocationsPageState extends State<LocationsPage> {
                                 child: SingleChildScrollView(
                                   child: Column(
                                     children: [
-                                      ..._locations.where((location) => _input.isEmpty || location.id == int.tryParse(_input) || location.name.toLowerCase().contains(_input.toLowerCase()))
+                                      ..._locations
+                                        .where((location) => _input.isEmpty
+                                          || location.id == int.tryParse(_input)
+                                          || location.name.toLowerCase().contains(_input.toLowerCase())
+                                        )
                                         .map((location) => InkWell(
                                           key: ValueKey(location),
                                           onTap: () {

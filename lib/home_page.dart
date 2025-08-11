@@ -4,7 +4,6 @@ import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/filters_page.dart';
 import 'package:mcdo_menu_generator/location.dart';
 import 'package:mcdo_menu_generator/locations_page.dart';
-import 'package:mcdo_menu_generator/utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -99,8 +98,10 @@ class _HomePageState extends State<HomePage> { // todo: check Set
             padding: EdgeInsets.all(16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
+              spacing: 16.0,
               children: [
                 Row(
+                  spacing: 16.0,
                   children: [
                     ElevatedButton(
                       onPressed: () => _openSideSheet(
@@ -121,8 +122,6 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                       child: const Text('Locations'),
                     ),
 
-                    const HorizontalSizedBox(),
-
                     Expanded(
                       child: TextField(
                         keyboardType: const TextInputType.numberWithOptions(
@@ -136,8 +135,6 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                         onChanged: _updateTargetCalories,
                       ),
                     ),
-
-                    const HorizontalSizedBox(),
 
                     ElevatedButton(
                       onPressed: () => _openSideSheet(
@@ -158,19 +155,15 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                   ],
                 ),
 
-                const VerticalSizedBox(),
-
                 Row(
                   children: [
                     Text('Items : ${filteredItems.length}'),
                     Spacer(),
                     Text('Calories : $_currentCalories kcal'),
                     Spacer(),
-                    Text('Price : $_currentPrice €'),
+                    Text('Price : ${_currentPrice.toStringAsFixed(2)} €'),
                   ]
                 ),
-
-                const VerticalSizedBox(),
 
                 FutureBuilder(
                   future: _itemsFuture,
@@ -208,7 +201,7 @@ class _HomePageState extends State<HomePage> { // todo: check Set
                                     ],
                                   ),
                                   Spacer(),
-                                  Text('${item.price} €'),
+                                  Text('${item.price.toStringAsFixed(2)} €'),
                                 ],
                               )
                             ),

@@ -18,6 +18,8 @@ class _LocationsPageState extends State<LocationsPage> {
   LocationUpdatedFunction get _onLocationUpdated => widget.onLocationUpdated;
   Location get _currentLocation => widget.currentLocation;
 
+  bool _showIds = false;
+
   List<Location> _getLocations() {
     final Set<Location> locations = {
       Location(id: 1717, name: "MOI"),
@@ -43,65 +45,77 @@ class _LocationsPageState extends State<LocationsPage> {
               widthFactor: 0.85,
               heightFactor: 1.0,
               child: Material(
-                elevation: 12,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
+                elevation: 12.0,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  bottomLeft: Radius.circular(20.0),
                 ),
                 child: GestureDetector(
                   onHorizontalDragEnd: (details) {
-                    if (details.velocity.pixelsPerSecond.dx > 100.0) {
+                    if (details.velocity.pixelsPerSecond.dx < -50.0) {
                       Navigator.pop(context);
                     }
                   },
-                  child: Column(
-                    children: [
-                      AppBar(
-                        automaticallyImplyLeading: false,
-                        title: Text('Locations'),
-                        actions: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: IconButton(
-                              icon: Icon(Icons.close),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      spacing: 16.0,
+                      children: [
+                        AppBar(
+                          automaticallyImplyLeading: false,
+                          title: const Text('Locations'),
+                          actions: [
+                            IconButton(
+                              icon: const Icon(Icons.close),
                               onPressed: () => Navigator.pop(context),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
 
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              ..._getLocations().map((location) => InkWell(
-                                key: ValueKey(location),
-                                onTap: () {
-                                  _onLocationUpdated(location);
-                                  Navigator.pop(context);
-                                },
-                                child: Container(
-                                  color: _currentLocation == location
-                                    ? Colors.blue.withValues(alpha: 0.2)
-                                    : Colors.transparent,
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Text(location.name),
-                                        ],
-                                      ),
-                                    ],
+                        Row(
+                          spacing: 16.0,
+                          children: [
+                            const Text('Show IDs'),
+                            ElevatedButton(
+                              onPressed: () => setState(() => _showIds = !_showIds),
+                              child: Text(_showIds.toString()),
+                            ),
+                          ],
+                        ),
+
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                ..._getLocations().map((location) => InkWell(
+                                  key: ValueKey(location),
+                                  onTap: () {
+                                    _onLocationUpdated(location);
+                                    Navigator.pop(context);
+                                  },
+                                  child: Container(
+                                    color: _currentLocation == location
+                                      ? Colors.blue.withValues(alpha: 0.2)
+                                      : Colors.transparent,
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      spacing: 16.0,
+                                      children: [
+                                        Text(location.name),
+                                        if (_showIds) Text(
+                                          location.id.toString(),
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              )),
-                            ],
+                                )),
+                              ],
+                            )
                           ),
                         ),
-                      ),
-                    ],
+                      ]
+                    ),
                   ),
                 ),
               ),

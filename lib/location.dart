@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
 
@@ -27,7 +25,7 @@ class Location {
       for (var choice in choices) {
         final products = choice['products'] as List;
 
-        result.addAll(products.map((product) {
+        return result..addAll(products.map((product) { // skip
           final ref = product['ref'] as String;
           final designation = product['designation'] as String;
           final nultritionalValues = product['nutritionalValues'] as List;

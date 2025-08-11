@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
-import 'package:mcdo_menu_generator/utils.dart';
 
 class FiltersPage extends StatefulWidget {
   const FiltersPage({super.key, required this.animation, required this.availableItems, required this.onFiltersUpdated, required this.filters});
@@ -92,7 +91,7 @@ class _FiltersPageState extends State<FiltersPage> {
                 ),
                 child: GestureDetector(
                   onHorizontalDragEnd: (details) {
-                    if (details.velocity.pixelsPerSecond.dx > 100.0) {
+                    if (details.velocity.pixelsPerSecond.dx > 50.0) {
                       Navigator.pop(context);
                     }
                   },
@@ -116,20 +115,11 @@ class _FiltersPageState extends State<FiltersPage> {
                         child: SingleChildScrollView(
                           padding: const EdgeInsets.all(16),
                           child: Column(
+                            spacing: 16.0,
                             children: [
-                              ...ItemType.values.map((itemType) => Column(
-                                key: ValueKey('allowedItemType-$itemType'),
-                                children: [
-                                  _getItemTypeButton(itemType),
-                                  const VerticalSizedBox(),
-                                ]
-                              )),
-
-                              const VerticalSizedBox(),
+                              ...ItemType.values.map((itemType) => _getItemTypeButton(itemType)),
 
                               Text('Required Items'),
-
-                              const VerticalSizedBox(),
 
                               ...ItemType.values.map((itemType) => Column(
                                 key: ValueKey('itemTypeDropdown-$itemType'),
@@ -144,8 +134,6 @@ class _FiltersPageState extends State<FiltersPage> {
                                       ),
                                     ],
                                   ),
-
-                                  const VerticalSizedBox(),
 
                                   ..._availableItems
                                     .where((item) => item.type == itemType && dropdownStates[itemType] == DropdownState.opened)
@@ -173,7 +161,7 @@ class _FiltersPageState extends State<FiltersPage> {
                                               ],
                                             ),
                                             Spacer(),
-                                            Text('${item.price} €'),
+                                            Text('${item.price.toStringAsFixed(2)} €'),
                                           ],
                                         ),
                                       ),

@@ -19,10 +19,18 @@ class _HomePageState extends State<HomePage> {
   Filters _filters = Filters();
 
   Location _currentLocation = Location(id: 0, name: '');
+
+  bool _isRandom = false;
+
   Future<List<Item>> get _availableItemsFuture => _currentLocation.availableItems;
 
   List<Item> _getFilteredItems(List<Item> availableItems) {
-    availableItems.sort((a, b) => b.value.compareTo(a.value));
+    if (_isRandom) {
+      availableItems.shuffle();
+    }
+    else {
+      availableItems.sort((a, b) => b.value.compareTo(a.value));
+    }
 
     final filteredItems = _filters.requiredItems.toList();
 
@@ -214,6 +222,7 @@ class _HomePageState extends State<HomePage> {
                       }
                       else {
                         final filteredItems = _getFilteredItems(snapshot.data!);
+                        _isRandom = false;
                         return ListView(
                           children: [
                             ...filteredItems
@@ -271,17 +280,34 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
 
-                TextField(
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: false,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Target Calories',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
-                  autofocus: false,
+                Row(
+                  spacing: 16.0,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                          signed: false,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Target Calories',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
+                        autofocus: false,
+                      ),
+                    ),
+
+                    ElevatedButton(
+                      onPressed: () => setState(() => _isRandom = true),
+                      onLongPress: () => setState(() => _isRandom = false),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isRandom ? Color.fromARGB(255, 64, 54, 118) : null,
+                        foregroundColor: _isRandom ? Colors.white : null,
+                      ),
+                      child: Text('Randomize'),
+                    ),
+                  ],
                 ),
               ],
             ),

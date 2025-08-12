@@ -108,7 +108,10 @@ class _HomePageState extends State<HomePage> {
       onTap: () => FocusScope.of(context).unfocus(),
       onHorizontalDragEnd: (details) {
         if (details.velocity.pixelsPerSecond.dx > 50.0) {
-          Navigator.pop(context);
+          _openLocationsPage(context);
+        }
+        else if (details.velocity.pixelsPerSecond.dx < -50.0) {
+          _openFiltersPage(context);
         }
       },
       child: Scaffold(

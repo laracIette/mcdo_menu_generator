@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
+import 'package:mcdo_menu_generator/utils.dart';
 
 class FiltersPage extends StatefulWidget {
   const FiltersPage({super.key, required this.animation, required this.availableItemsFuture, required this.onFiltersUpdated, required this.filters});
@@ -41,6 +42,58 @@ class _FiltersPageState extends State<FiltersPage> {
     });
     _broadcastFiltersUpdated();
   }
+
+  Iterable<Widget> _getItemWidgets(Iterable<Item> items) =>
+    items
+      .where((item) => _input.isEmpty
+        || item.id == int.tryParse(_input)
+        || item.name.toLowerCase().contains(_input.toLowerCase())
+      )
+      .map((item) => InkWell(
+        key: ValueKey(item.id),
+        onTap: () => _switchRequiredItem(item),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            spacing: 16.0,
+            children: [
+              Image.network(
+                item.imagePath,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: item.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          if (_showIds) TextSpan(
+                            text: '  ${item.id}',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
+                    ),
+                    Text('${item.calories} kcal'),
+                  ],
+                ),
+              ),
+
+              Text('${item.price.toStringAsFixed(2)} €'),
+            ],
+          ),
+        ),
+      ));
 
   @override
   Widget build(BuildContext context) {
@@ -108,59 +161,11 @@ class _FiltersPageState extends State<FiltersPage> {
                                 final availableItems = snapshot.data!;
                                 return ListView(
                                   children: [
-                                    ...availableItems
-                                      .where((item) => _input.isEmpty
-                                        || item.id == int.tryParse(_input)
-                                        || item.name.toLowerCase().contains(_input.toLowerCase())
-                                      )
-                                      .map((item) => InkWell(
-                                        key: ValueKey(item.id),
-                                        onTap: () => _switchRequiredItem(item),
-                                        child: Container(
-                                          color: _filters.requiredItems.contains(item)
-                                            ? Theme.of(context).colorScheme.secondaryContainer
-                                            : Colors.transparent,
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Row(
-                                            spacing: 16.0,
-                                            children: [
-                                              Image.network(
-                                                item.imagePath,
-                                                width: 80,
-                                                height: 80,
-                                                fit: BoxFit.cover,
-                                              ),
-
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text.rich(
-                                                      TextSpan(
-                                                        children: [
-                                                          TextSpan(
-                                                            text: item.name,
-                                                            style: const TextStyle(fontWeight: FontWeight.bold),
-                                                          ),
-                                                          if (_showIds) TextSpan(
-                                                            text: '  ${item.id}',
-                                                            style: const TextStyle(color: Colors.grey),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      softWrap: true,
-                                                      overflow: TextOverflow.visible,
-                                                    ),
-                                                    Text('${item.calories} kcal'),
-                                                  ],
-                                                ),
-                                              ),
-
-                                              Text('${item.price.toStringAsFixed(2)} €'),
-                                            ],
-                                          ),
-                                        ),
-                                      )),
+                                    if (_filters.requiredItems.isNotEmpty) const Text('Selected Items'),
+                                    ..._getItemWidgets(availableItems.where((item) => _filters.requiredItems.contains(item))),
+                                    VerticalSizedBox(),
+                                    if (_filters.requiredItems.length != availableItems.length) const Text('Available Items'),
+                                    ..._getItemWidgets(availableItems.where((item) => !_filters.requiredItems.contains(item))),
                                   ],
                                 );
                               }

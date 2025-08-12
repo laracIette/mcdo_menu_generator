@@ -184,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                       || snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Row(
                         children: [
-                          Text('Calories : 0 kcal'),
+                          Text('Calories : 0.0 kcal'),
                           Spacer(),
                           Text('Price : 0.00 €'),
                         ]

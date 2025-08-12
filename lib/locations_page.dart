@@ -193,7 +193,9 @@ class _LocationsPageState extends State<LocationsPage> {
                                                           ),
                                                           if (location.distance != null)
                                                             TextSpan(
-                                                              text: '  ${(location.distance! / 1000.0).toStringAsFixed(2)}km',
+                                                              text: location.distance! < 1000.0
+                                                                ? '  ${(location.distance!).toInt()}m'
+                                                                : '  ${(location.distance! / 1000.0).toStringAsFixed(2)}km',
                                                               style: const TextStyle(color: Color.fromARGB(255, 202, 202, 202)),
                                                             ),
                                                           if (_showIds)

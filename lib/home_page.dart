@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       // ignore item if total calories too high
-      if (currentCalories + item.calories > _targetCalories) {
+      if (currentCalories + item.calories > _targetCalories * 1.05) {
         continue;
       }
 

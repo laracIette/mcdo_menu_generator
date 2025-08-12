@@ -1,3 +1,5 @@
+import 'dart:math' show Random;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mcdo_menu_generator/filters.dart';
@@ -20,16 +22,18 @@ class _HomePageState extends State<HomePage> {
 
   Location _currentLocation = Location(id: 0, name: '');
 
+  int _randomSeed = 0;
   bool _isRandom = false;
 
   Future<List<Item>> get _availableItemsFuture => _currentLocation.availableItems;
 
   List<Item> _getFilteredItems(List<Item> availableItems) {
+    final myAvailableItems = List.from(availableItems);
     if (_isRandom) {
-      availableItems.shuffle();
+      myAvailableItems.shuffle(Random(_randomSeed));
     }
     else {
-      availableItems.sort((a, b) => b.value.compareTo(a.value));
+      myAvailableItems.sort((a, b) => b.value.compareTo(a.value));
     }
 
     final filteredItems = _filters.requiredItems.toList();
@@ -39,7 +43,7 @@ class _HomePageState extends State<HomePage> {
       currentCalories += item.calories;
     }
 
-    for (var item in availableItems) {
+    for (var item in myAvailableItems) {
       // ignore already added required item
       if (_filters.requiredItems.contains(item)) {
         continue;
@@ -222,7 +226,6 @@ class _HomePageState extends State<HomePage> {
                       }
                       else {
                         final filteredItems = _getFilteredItems(snapshot.data!);
-                        _isRandom = false;
                         return ListView(
                           children: [
                             ...filteredItems
@@ -299,7 +302,10 @@ class _HomePageState extends State<HomePage> {
                     ),
 
                     ElevatedButton(
-                      onPressed: () => setState(() => _isRandom = true),
+                      onPressed: () => setState(() {
+                        ++_randomSeed;
+                        _isRandom = true;
+                      }),
                       onLongPress: () => setState(() => _isRandom = false),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _isRandom ? Color.fromARGB(255, 64, 54, 118) : null,

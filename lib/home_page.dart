@@ -19,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   Filters _filters = Filters();
 
   Location _currentLocation = Location(id: 0, name: '');
-  Future<List<Item>> get _itemsFuture => _currentLocation.availableItems;
+  Future<List<Item>> get _availableItemsFuture => _currentLocation.availableItems;
 
   List<Item> _getFilteredItems(List<Item> availableItems) {
     availableItems.sort((a, b) => b.value.compareTo(a.value));
@@ -67,6 +67,29 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _openLocationsPage(BuildContext context) =>
+    _openSideSheet(
+      context,
+      const Offset(-1, 0),
+      (context, animation, secondaryAnimation) => LocationsPage(
+        animation: animation,
+        currentLocation: _currentLocation,
+        onLocationUpdated: (location) => setState(() => _currentLocation = location),
+      ),
+    );
+
+  void _openFiltersPage(BuildContext context) =>
+    _openSideSheet(
+      context,
+      const Offset(1, 0),
+      (context, animation, secondaryAnimation) => FiltersPage(
+        animation: animation,
+        availableItemsFuture: _availableItemsFuture,
+        filters: _filters,
+        onFiltersUpdated: (filters) => setState(() =>  _filters = filters),
+      ),
+    );
+
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
@@ -83,6 +106,11 @@ class _HomePageState extends State<HomePage> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
+      onHorizontalDragEnd: (details) {
+        if (details.velocity.pixelsPerSecond.dx > 50.0) {
+          Navigator.pop(context);
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -100,71 +128,21 @@ class _HomePageState extends State<HomePage> {
                   spacing: 16.0,
                   children: [
                     ElevatedButton(
-                      onPressed: () => _openSideSheet(
-                        context,
-                        const Offset(-1, 0),
-                        (context, animation, secondaryAnimation) => LocationsPage(
-                          animation: animation,
-                          currentLocation: _currentLocation,
-                          onLocationUpdated: (location) => setState(() => _currentLocation = location),
-                        ),
-                      ),
+                      onPressed: () => _openLocationsPage(context),
                       child: const Text('Location'),
                     ),
 
                     Spacer(),
 
-                    FutureBuilder(
-                      future: _itemsFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              ElevatedButton(
-                                onPressed: null,
-                                child: Text('Filter'),
-                              ),
-                              Center(
-                                child: SizedBox(
-                                  width: 16.0,
-                                  height: 16.0,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.0,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                        else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const ElevatedButton(
-                            onPressed: null,
-                            child: Text('Filter')
-                          );
-                        }
-                        else {
-                          return ElevatedButton(
-                            onPressed: () => _openSideSheet(
-                              context,
-                              const Offset(1, 0),
-                              (context, animation, secondaryAnimation) => FiltersPage(
-                                animation: animation,
-                                availableItems: snapshot.data!,
-                                filters: _filters,
-                                onFiltersUpdated: (filters) => setState(() =>  _filters = filters),
-                              ),
-                            ),
-                            child: const Text('Filter')
-                          );
-                        }
-                      }
+                    ElevatedButton(
+                      onPressed: () => _openFiltersPage(context),
+                      child: const Text('Filter')
                     ),
                   ],
                 ),
 
                 FutureBuilder(
-                  future: _itemsFuture,
+                  future: _availableItemsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting
                       || snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
@@ -197,27 +175,25 @@ class _HomePageState extends State<HomePage> {
                   }
                 ),
 
-
-
-                FutureBuilder(
-                  future: _itemsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Expanded(child: Center(child: CircularProgressIndicator()));
-                    }
-                    else if (snapshot.hasError) {
-                      return Expanded(child:Center(child: Text('Error: ${snapshot.error}')));
-                    }
-                    else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Expanded(child:Center(child: Text('No items found')));
-                    }
-                    else {
-                      final filteredItems = _getFilteredItems(snapshot.data!);
-                      return Expanded(
-                        child: ListView(
+                Expanded(
+                  child: FutureBuilder(
+                    future: _availableItemsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      }
+                      else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No items found'));
+                      }
+                      else {
+                        final filteredItems = _getFilteredItems(snapshot.data!);
+                        return ListView(
                           children: [
-                            ...filteredItems.map(
-                              (item) => Row(
+                            ...filteredItems
+                              .map((item) => Row(
                                 key: ValueKey(item.id),
                                 spacing: 16.0,
                                 children: [
@@ -245,13 +221,12 @@ class _HomePageState extends State<HomePage> {
 
                                   Text('${item.price.toStringAsFixed(2)} €'),
                                 ],
-                              )
-                            ),
-                          ]
-                        )
-                      );
-                    }
-                  },
+                              )),
+                          ],
+                        );
+                      }
+                    },
+                  ),
                 ),
 
                 TextField(

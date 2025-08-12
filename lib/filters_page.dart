@@ -4,10 +4,10 @@ import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
 
 class FiltersPage extends StatefulWidget {
-  const FiltersPage({super.key, required this.animation, required this.availableItems, required this.onFiltersUpdated, required this.filters});
+  const FiltersPage({super.key, required this.animation, required this.availableItemsFuture, required this.onFiltersUpdated, required this.filters});
 
   final Animation<double> animation;
-  final List<Item> availableItems;
+  final Future<List<Item>> availableItemsFuture;
   final void Function(Filters) onFiltersUpdated;
   final Filters filters;
 
@@ -22,7 +22,7 @@ enum DropdownState {
 
 class _FiltersPageState extends State<FiltersPage> {
   Filters get _filters => widget.filters;
-  List<Item> get _availableItems => widget.availableItems;
+  Future<List<Item>> get _availableItemsFuture => widget.availableItemsFuture;
 
   final Map<ItemType, DropdownState> dropdownStates = {};
 
@@ -92,63 +92,80 @@ class _FiltersPageState extends State<FiltersPage> {
                         ),
 
                         Expanded(
-                          child: ListView(
-                            children: [
-                              ..._availableItems
-                                .where((item) => _input.isEmpty
-                                  || item.id == int.tryParse(_input)
-                                  || item.name.toLowerCase().contains(_input.toLowerCase())
-                                )
-                                .map((item) => InkWell(
-                                  key: ValueKey(item.id),
-                                  onTap: () => _switchRequiredItem(item),
-                                  child: Container(
-                                    color: _filters.requiredItems.contains(item)
-                                      ? Colors.blue.withValues(alpha: 0.2)
-                                      : Colors.transparent,
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      spacing: 16.0,
-                                      children: [
-                                        Image.network(
-                                          item.imagePath,
-                                          width: 80,
-                                          height: 80,
-                                          fit: BoxFit.cover,
-                                        ),
-
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: FutureBuilder(
+                            future: _availableItemsFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(child: CircularProgressIndicator());
+                              }
+                              else if (snapshot.hasError) {
+                                return Center(child: Text('Error: ${snapshot.error}'));
+                              }
+                              else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return const Center(child: Text('No items found'));
+                              }
+                              else {
+                                final availableItems = snapshot.data!;
+                                return ListView(
+                                  children: [
+                                    ...availableItems
+                                      .where((item) => _input.isEmpty
+                                        || item.id == int.tryParse(_input)
+                                        || item.name.toLowerCase().contains(_input.toLowerCase())
+                                      )
+                                      .map((item) => InkWell(
+                                        key: ValueKey(item.id),
+                                        onTap: () => _switchRequiredItem(item),
+                                        child: Container(
+                                          color: _filters.requiredItems.contains(item)
+                                            ? Theme.of(context).colorScheme.secondaryContainer
+                                            : Colors.transparent,
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            spacing: 16.0,
                                             children: [
-                                              Text.rich(
-                                                TextSpan(
+                                              Image.network(
+                                                item.imagePath,
+                                                width: 80,
+                                                height: 80,
+                                                fit: BoxFit.cover,
+                                              ),
+
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    TextSpan(
-                                                      text: item.name,
-                                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                                    Text.rich(
+                                                      TextSpan(
+                                                        children: [
+                                                          TextSpan(
+                                                            text: item.name,
+                                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                                          ),
+                                                          if (_showIds) TextSpan(
+                                                            text: '  ${item.id}',
+                                                            style: const TextStyle(color: Colors.grey),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      softWrap: true,
+                                                      overflow: TextOverflow.visible,
                                                     ),
-                                                    if (_showIds) TextSpan(
-                                                      text: '  ${item.id}',
-                                                      style: const TextStyle(color: Colors.grey),
-                                                    ),
+                                                    Text('${item.calories} kcal'),
                                                   ],
                                                 ),
-                                                softWrap: true,
-                                                overflow: TextOverflow.visible,
                                               ),
-                                              Text('${item.calories} kcal'),
+
+                                              Text('${item.price.toStringAsFixed(2)} €'),
                                             ],
                                           ),
                                         ),
-
-                                        Text('${item.price.toStringAsFixed(2)} €'),
-                                      ],
-                                    ),
-                                  ),
-                                )),
-                            ],
-                          ),
+                                      )),
+                                  ],
+                                );
+                              }
+                            },
+                          )
                         ),
 
                         TextField(

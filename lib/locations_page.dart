@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'package:mcdo_menu_generator/location.dart';
+import 'package:geolocator/geolocator.dart';
 
 typedef LocationUpdatedFunction = Function(Location);
 
@@ -27,32 +30,65 @@ class _LocationsPageState extends State<LocationsPage> {
   bool _showIds = false;
 
   Future<List<Location>> _getLocations() async {
-    final url = Uri.parse('https://www.mcdonalds.fr/liste-restaurants-mcdonalds-france');
-    final response = await http.get(url);
+    final positionFuture = _getUserPosition();
+    final locationsFuture = _getAllLocations();
+    final userPosition = await positionFuture;
+    final locations = await locationsFuture;
 
-    if (response.statusCode == 200) {
-      final html = response.body;
+    if (userPosition != null) {
+      for (final location in locations) {
+        location.distance = Geolocator.distanceBetween(
+          userPosition.latitude, userPosition.longitude,
+          location.latitude, location.longitude
+        );
+      }
 
-      // Regex: captures name and id
-      final regex = RegExp(
-        r'https://www\.mcdonalds\.fr/restaurants/([a-z0-9\-]+)/(\d+)',
-        caseSensitive: false,
-      );
+      locations.sort((a, b) => a.distance!.compareTo(b.distance!));
+    }
+    return locations;
+  }
 
-      final locations = regex.allMatches(html)
-        .map((match) => Location(
-          id: int.tryParse(match.group(2) ?? '') ?? 0,
-          name: match.group(1)?.substring(10).replaceAll('-', ' ')
-            .split(' ')
-            .map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1))
-            .join(' ')
-            ?? 'Error',
-        )).toSet();
+  Future<Position?> _getUserPosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
 
-      return locations.toList();
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return null;
     }
 
-    return [];
+    // Check for permissions
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return null;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return null;
+    }
+
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+      ),
+    );
+  }
+
+  Future<List<Location>> _getAllLocations() async {
+    final jsonString = await rootBundle.loadString('assets/data/restaurants_essentials.json');
+    final json = jsonDecode(jsonString);
+    final data = json as List;
+
+    return data.map((restaurant) => Location(
+      id: restaurant['ref'] as int? ?? 0,
+      name: restaurant['name'] as String? ?? '',
+      latitude: restaurant['latitude'] as double? ?? 0.0,
+      longitude: restaurant['longitude'] as double? ?? 0.0,
+    )).toList();
   }
 
   @override
@@ -153,7 +189,13 @@ class _LocationsPageState extends State<LocationsPage> {
                                                         children: [
                                                           TextSpan(
                                                             text: location.name,
+                                                            style: const TextStyle(fontWeight: FontWeight.bold),
                                                           ),
+                                                          if (location.distance != null)
+                                                            TextSpan(
+                                                              text: '  ${(location.distance! / 1000.0).toStringAsFixed(2)}km',
+                                                              style: const TextStyle(color: Color.fromARGB(255, 202, 202, 202)),
+                                                            ),
                                                           if (_showIds)
                                                             TextSpan(
                                                               text: '  ${location.id.toString()}',

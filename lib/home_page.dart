@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
 
   Filters _filters = Filters();
 
-  Location _currentLocation = Location(id: 0, name: '');
+  Location _currentLocation = Location(id: 0, name: '', latitude: 0.0, longitude: 0.0);
 
   int _randomSeed = 0;
   bool _isRandom = false;

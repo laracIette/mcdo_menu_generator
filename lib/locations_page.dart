@@ -84,7 +84,7 @@ class _LocationsPageState extends State<LocationsPage> {
                     }
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
                     child: Column(
                       spacing: 16.0,
                       children: [

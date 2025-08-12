@@ -122,7 +122,7 @@ class _HomePageState extends State<HomePage> {
         ),
         body: Center(
           child: Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               spacing: 16.0,
@@ -242,6 +242,7 @@ class _HomePageState extends State<HomePage> {
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
+                  autofocus: false,
                 ),
               ],
             ),

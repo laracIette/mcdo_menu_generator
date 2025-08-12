@@ -38,59 +38,84 @@ class _FiltersPageState extends State<FiltersPage> {
     setState(() {
       if (!_filters.requiredItems.remove(item)) {
         _filters.requiredItems.add(item);
+        _filters.excludedItems.remove(item);
       }
     });
     _broadcastFiltersUpdated();
   }
 
-  Iterable<Widget> _getItemWidgets(Iterable<Item> items) =>
+  void _switchExcludedItem(Item item) {
+    setState(() {
+      if (!_filters.excludedItems.remove(item)) {
+        _filters.excludedItems.add(item);
+        _filters.requiredItems.remove(item);
+      }
+    });
+    _broadcastFiltersUpdated();
+  }
+
+  Iterable<Widget> _getItemWidgets(BuildContext context, Iterable<Item> items) =>
     items
       .where((item) => _input.isEmpty
         || item.id == int.tryParse(_input)
         || item.name.toLowerCase().contains(_input.toLowerCase())
       )
-      .map((item) => InkWell(
-        key: ValueKey(item.id),
-        onTap: () => _switchRequiredItem(item),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            spacing: 16.0,
-            children: [
-              Image.network(
-                item.imagePath,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-              ),
+      .map((item) => Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: _filters.requiredItems.contains(item)
+              ? Colors.green.withValues(alpha: 0.2)
+              : _filters.excludedItems.contains(item)
+                ? Colors.red.withValues(alpha: 0.2)
+                : Theme.of(context).hoverColor,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: InkWell(
+            key: ValueKey(item.id),
+            onTap: () => _switchRequiredItem(item),
+            onLongPress: () => _switchExcludedItem(item),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(4.0, 0.0, 8.0, 0.0),
+              child: Row(
+                spacing: 16.0,
+                children: [
+                  Image.network(
+                    item.imagePath,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  ),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text.rich(
-                      TextSpan(
-                        children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
                           TextSpan(
-                            text: item.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            children: [
+                              TextSpan(
+                                text: item.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              if (_showIds) TextSpan(
+                                text: '  ${item.id}',
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            ],
                           ),
-                          if (_showIds) TextSpan(
-                            text: '  ${item.id}',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                      softWrap: true,
-                      overflow: TextOverflow.visible,
+                          softWrap: true,
+                          overflow: TextOverflow.visible,
+                        ),
+                        Text('${item.calories} kcal'),
+                      ],
                     ),
-                    Text('${item.calories} kcal'),
-                  ],
-                ),
-              ),
+                  ),
 
-              Text('${item.price.toStringAsFixed(2)} €'),
-            ],
+                  Text('${item.price.toStringAsFixed(2)} €'),
+                ],
+              ),
+            ),
           ),
         ),
       ));
@@ -160,12 +185,37 @@ class _FiltersPageState extends State<FiltersPage> {
                               else {
                                 final availableItems = snapshot.data!;
                                 return ListView(
+                                  padding: EdgeInsets.zero, // todo: why?
                                   children: [
-                                    if (_filters.requiredItems.isNotEmpty) const Text('Selected Items'),
-                                    ..._getItemWidgets(availableItems.where((item) => _filters.requiredItems.contains(item))),
-                                    VerticalSizedBox(),
-                                    if (_filters.requiredItems.length != availableItems.length) const Text('Available Items'),
-                                    ..._getItemWidgets(availableItems.where((item) => !_filters.requiredItems.contains(item))),
+                                    if (_filters.requiredItems.isNotEmpty)
+                                      ...[
+                                        const Text('Selected Items'),
+                                        const VerticalSizedBox(height: 4.0),
+                                        ..._getItemWidgets(
+                                          context,
+                                          availableItems.where((item) => _filters.requiredItems.contains(item))
+                                        ),
+                                        const VerticalSizedBox(),
+                                      ],
+                                    if (_filters.excludedItems.isNotEmpty)
+                                      ...[
+                                        const Text('Excluded Items'),
+                                        const VerticalSizedBox(height: 4.0),
+                                        ..._getItemWidgets(
+                                          context,
+                                          availableItems.where((item) => _filters.excludedItems.contains(item))
+                                        ),
+                                        const VerticalSizedBox(),
+                                      ],
+                                    if (_filters.requiredItems.length + _filters.excludedItems.length != availableItems.length)
+                                      ...[
+                                        const Text('Available Items'),
+                                        const VerticalSizedBox(height: 4.0),
+                                        ..._getItemWidgets(
+                                          context,
+                                          availableItems.where((item) => !(_filters.requiredItems.contains(item) || _filters.excludedItems.contains(item)))
+                                        ),
+                                      ],
                                   ],
                                 );
                               }

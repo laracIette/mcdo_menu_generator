@@ -104,71 +104,79 @@ class _LocationsPageState extends State<LocationsPage> {
                           child: Text(_showIds ? 'Hide IDs' : 'Show IDs')
                         ),
 
-                        FutureBuilder(
-                          future: _locationsFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Expanded(child: Center(child: CircularProgressIndicator()));
-                            }
-                            else if (snapshot.hasError) {
-                              return Expanded(child: Center(child: Text('Error: ${snapshot.error}')));
-                            }
-                            else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const Expanded(child: Center(child: Text('No items found')));
-                            }
-                            else {
-                              _locations = snapshot.data!;
-                              //_locations.sort((a, b) => a.distance.compareTo(b.distance));
-                              return Expanded(
-                                child: ListView(
+                        Expanded(
+                          child: FutureBuilder(
+                            future: _locationsFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(child: CircularProgressIndicator());
+                              }
+                              else if (snapshot.hasError) {
+                                return Center(child: Text('Error: ${snapshot.error}'));
+                              }
+                              else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return const Center(child: Text('No items found'));
+                              }
+                              else {
+                                _locations = snapshot.data!;
+                                //_locations.sort((a, b) => a.distance.compareTo(b.distance));
+                                return ListView(
+                                  padding: EdgeInsets.zero, // todo: necessary for top padding but why?
                                   children: [
                                     ..._locations
                                       .where((location) => _input.isEmpty
                                         || location.id == int.tryParse(_input)
                                         || location.name.toLowerCase().contains(_input.toLowerCase())
                                       )
-                                      .map((location) => InkWell(
-                                        key: ValueKey(location.id),
-                                        onTap: () {
-                                          _onLocationUpdated(location);
-                                          Navigator.pop(context);
-                                        },
+                                      .map((location) => Padding(
+                                        padding: const EdgeInsets.all(2.0),
                                         child: Container(
-                                          color: _currentLocation == location
-                                            ? Colors.blue.withValues(alpha: 0.2)
-                                            : Colors.transparent,
-                                          padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text.rich(
-                                                    TextSpan(
-                                                      children: [
-                                                        TextSpan(
-                                                          text: location.name,
-                                                        ),
-                                                        if (_showIds)
+                                          decoration: BoxDecoration(
+                                            color: _currentLocation == location
+                                              ? Theme.of(context).highlightColor
+                                              : Colors.transparent,
+                                            borderRadius: BorderRadius.circular(4.0),
+                                          ),
+                                          child: InkWell(
+                                            key: ValueKey(location.id),
+                                            onTap: () {
+                                              _onLocationUpdated(location);
+                                              Navigator.pop(context);
+                                            },
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text.rich(
+                                                      TextSpan(
+                                                        children: [
                                                           TextSpan(
-                                                            text: '  ${location.id.toString()}',
-                                                            style: const TextStyle(color: Colors.grey),
+                                                            text: location.name,
                                                           ),
-                                                      ],
+                                                          if (_showIds)
+                                                            TextSpan(
+                                                              text: '  ${location.id.toString()}',
+                                                              style: const TextStyle(color: Colors.grey),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                      softWrap: true,
+                                                      overflow: TextOverflow.visible,
                                                     ),
-                                                    softWrap: true,
-                                                    overflow: TextOverflow.visible,
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           ),
+                                        ),
                                       )),
                                   ],
-                                ),
-                              );
+                                );
+                              }
                             }
-                          }
+                          ),
                         ),
-
                         TextField(
                           decoration: const InputDecoration(
                             labelText: 'Search Location',

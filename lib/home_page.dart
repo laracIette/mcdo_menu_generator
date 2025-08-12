@@ -37,6 +37,11 @@ class _HomePageState extends State<HomePage> {
         continue;
       }
 
+      // ignore excluded item
+      if (_filters.excludedItems.contains(item)) {
+        continue;
+      }
+
       // ignore item if total calories too high
       if (currentCalories + item.calories > _targetCalories) {
         continue;
@@ -89,6 +94,22 @@ class _HomePageState extends State<HomePage> {
         onFiltersUpdated: (filters) => setState(() =>  _filters = filters),
       ),
     );
+
+  void _switchRequiredItem(Item item) =>
+    setState(() {
+      if (!_filters.requiredItems.remove(item)) {
+        _filters.requiredItems.add(item);
+        _filters.excludedItems.remove(item);
+      }
+    });
+
+  void _switchExcludedItem(Item item) =>
+    setState(() {
+      if (!_filters.excludedItems.remove(item)) {
+        _filters.excludedItems.add(item);
+        _filters.requiredItems.remove(item);
+      }
+    });
 
   @override
   Widget build(BuildContext context) {
@@ -196,34 +217,52 @@ class _HomePageState extends State<HomePage> {
                         return ListView(
                           children: [
                             ...filteredItems
-                              .map((item) => Row(
-                                key: ValueKey(item.id),
-                                spacing: 16.0,
-                                children: [
-                                  Image.network(
-                                    item.imagePath,
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
+                              .map((item) => Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: _filters.requiredItems.contains(item)
+                                      ? Colors.green.withValues(alpha: 0.2)
+                                      : Theme.of(context).hoverColor,
+                                    borderRadius: BorderRadius.circular(8.0),
                                   ),
+                                  child: InkWell(
+                                    key: ValueKey(item.id),
+                                    onTap: () => _switchRequiredItem(item),
+                                    onLongPress: () => _switchExcludedItem(item),
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(4.0, 0.0, 8.0, 0.0),
+                                      child: Row(
+                                        spacing: 16.0,
+                                        children: [
+                                          Image.network(
+                                            item.imagePath,
+                                            width: 80,
+                                            height: 80,
+                                            fit: BoxFit.cover,
+                                          ),
 
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.name,
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
-                                          softWrap: true,
-                                          overflow: TextOverflow.visible,
-                                        ),
-                                        Text('${item.calories} kcal'),
-                                      ],
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.name,
+                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                  softWrap: true,
+                                                  overflow: TextOverflow.visible,
+                                                ),
+                                                Text('${item.calories} kcal'),
+                                              ],
+                                            ),
+                                          ),
+
+                                          Text('${item.price.toStringAsFixed(2)} €'),
+                                        ],
+                                      ),
                                     ),
                                   ),
-
-                                  Text('${item.price.toStringAsFixed(2)} €'),
-                                ],
+                                ),
                               )),
                           ],
                         );

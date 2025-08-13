@@ -1,25 +1,34 @@
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/item_type.dart';
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class Location {
-  Location({required this.id, required this.name, required this.latitude, required this.longitude});
+part 'location.g.dart';
 
+@HiveType(typeId: 0)
+class Location {
+  Location({required this.id, required this.name, required this.latitude, required this.longitude, this.distance});
+
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String name;
+  @HiveField(2)
   final double latitude;
+  @HiveField(3)
   final double longitude;
+  @HiveField(4)
   double? distance;
 
   static final String _orderType = 'EAT_IN';
 
   late final String jsonUrl = 'https://ws.mcdonalds.fr/api/catalog/14/products?eatType=$_orderType&responseGroups=RG.PRODUCT.DEFAULT&responseGroups=RG.PRODUCT.CHOICE_DETAILS&responseGroups=RG.PRODUCT.WORKING_HOURS&responseGroups=RG.PRODUCT.PICTURES&responseGroups=RG.PRODUCT.RESTAURANT_STATUS&responseGroups=RG.PRODUCT.CAPPING&responseGroups=RG.PRODUCT.TIP&responseGroups=RG.PRODUCT.NUTRITIONAL_VALUES&restaurantRef=$id';
 
-  late final Future<List<Item>> availableItems = getAvailableItems();
+  late final Future<List<Item>> availableItems = _getAvailableItems();
 
-  Future<List<Item>> getAvailableItems() async {
+  Future<List<Item>> _getAvailableItems() async {
     final uri = Uri.parse(jsonUrl);
     final response = await http.get(uri);
 

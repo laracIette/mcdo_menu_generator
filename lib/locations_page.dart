@@ -17,11 +17,10 @@ class LocationsPage extends StatefulWidget {
 }
 
 class _LocationsPageState extends State<LocationsPage> {
-  late final Future<List<Location>> _allLocationsFuture = _getAllLocations();
-
   String _input = '';
-
   bool _showIds = false;
+
+  late final Future<List<Location>> _allLocationsFuture = _getAllLocations();
 
   Future<List<Location>> _getLocations() async {
     final allLocations = await _allLocationsFuture;
@@ -163,6 +162,7 @@ class _LocationsPageState extends State<LocationsPage> {
                                               Navigator.pop(context);
                                               widget.onPop();
                                             },
+                                            borderRadius: BorderRadius.circular(6.0),
                                             child: Padding(
                                               padding: const EdgeInsetsGeometry.all(8.0),
                                               child: Row(

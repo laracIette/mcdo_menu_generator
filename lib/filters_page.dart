@@ -63,6 +63,7 @@ class _FiltersPageState extends State<FiltersPage> {
             key: ValueKey(item.id),
             onTap: () => _switchRequiredItem(item),
             onLongPress: () => _switchExcludedItem(item),
+            borderRadius: BorderRadius.circular(8.0),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(4.0, 0.0, 8.0, 0.0),
               child: Row(
@@ -175,7 +176,7 @@ class _FiltersPageState extends State<FiltersPage> {
                               }),
                               child: const Padding(
                                 padding: EdgeInsetsGeometry.all(10.0),
-                                child: Icon(Icons.clear_rounded),
+                                child: Icon(Icons.clear_all_rounded),
                               ),
                             ),
                           ],

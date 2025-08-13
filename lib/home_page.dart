@@ -247,6 +247,7 @@ class _HomePageState extends State<HomePage> {
                                     key: ValueKey(item.id),
                                     onTap: () => _switchRequiredItem(item),
                                     onLongPress: () => _switchExcludedItem(item),
+                                    borderRadius: BorderRadius.circular(8.0),
                                     child: Padding(
                                       padding: const EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 8.0, 0.0),
                                       child: Row(

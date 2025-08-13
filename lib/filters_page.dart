@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
-import 'package:mcdo_menu_generator/item_type.dart';
+import 'package:mcdo_menu_generator/shared_data.dart';
 import 'package:mcdo_menu_generator/utils.dart';
 
 class FiltersPage extends StatefulWidget {
-  const FiltersPage({super.key, required this.animation, required this.availableItemsFuture, required this.onFiltersUpdated, required this.filters});
+  const FiltersPage({super.key, required this.animation, required this.onPop});
 
   final Animation<double> animation;
-  final Future<List<Item>> availableItemsFuture;
-  final void Function(Filters) onFiltersUpdated;
-  final Filters filters;
+  final void Function() onPop;
 
   @override
   State<FiltersPage> createState() => _FiltersPageState();
@@ -22,37 +20,27 @@ enum DropdownState {
 }
 
 class _FiltersPageState extends State<FiltersPage> {
-  Filters get _filters => widget.filters;
-  Future<List<Item>> get _availableItemsFuture => widget.availableItemsFuture;
-
-  final Map<ItemType, DropdownState> dropdownStates = {};
+  Filters get _filters => sharedData.filters;
 
   String _input = '';
 
   bool _showIds = false;
 
-  void _broadcastFiltersUpdated() =>
-    widget.onFiltersUpdated(_filters);
-
-  void _switchRequiredItem(Item item) {
+  void _switchRequiredItem(Item item) =>
     setState(() {
       if (!_filters.requiredItems.remove(item)) {
         _filters.requiredItems.add(item);
         _filters.excludedItems.remove(item);
       }
     });
-    _broadcastFiltersUpdated();
-  }
 
-  void _switchExcludedItem(Item item) {
+  void _switchExcludedItem(Item item) =>
     setState(() {
       if (!_filters.excludedItems.remove(item)) {
         _filters.excludedItems.add(item);
         _filters.requiredItems.remove(item);
       }
     });
-    _broadcastFiltersUpdated();
-  }
 
   Iterable<Widget> _getItemWidgets(BuildContext context, Iterable<Item> items) =>
     items
@@ -128,7 +116,10 @@ class _FiltersPageState extends State<FiltersPage> {
         children: [
           GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Navigator.pop(context);
+              widget.onPop();
+            },
             child: Container(),
           ),
           Align(
@@ -146,6 +137,7 @@ class _FiltersPageState extends State<FiltersPage> {
                   onHorizontalDragEnd: (details) {
                     if (details.velocity.pixelsPerSecond.dx > 50.0) {
                       Navigator.pop(context);
+                      widget.onPop();
                     }
                   },
                   child: Padding(
@@ -171,7 +163,7 @@ class _FiltersPageState extends State<FiltersPage> {
 
                         Expanded(
                           child: FutureBuilder(
-                            future: _availableItemsFuture,
+                            future: sharedData.currentLocation?.availableItems,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
                                 return const Center(child: CircularProgressIndicator());

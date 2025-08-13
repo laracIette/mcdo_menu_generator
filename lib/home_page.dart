@@ -5,8 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/filters_page.dart';
-import 'package:mcdo_menu_generator/location.dart';
 import 'package:mcdo_menu_generator/locations_page.dart';
+import 'package:mcdo_menu_generator/shared_data.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,14 +18,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   double _targetCalories = 0.0;
 
-  Filters _filters = Filters();
-
-  Location _currentLocation = Location(id: 0, name: '', latitude: 0.0, longitude: 0.0);
+  Filters get _filters => sharedData.filters;
 
   int _randomSeed = 0;
   bool _isRandom = false;
-
-  Future<List<Item>> get _availableItemsFuture => _currentLocation.availableItems;
 
   List<Item> _getFilteredItems(List<Item> availableItems) {
     final myAvailableItems = List.from(availableItems);
@@ -90,8 +86,7 @@ class _HomePageState extends State<HomePage> {
       const Offset(-1, 0),
       (context, animation, secondaryAnimation) => LocationsPage(
         animation: animation,
-        currentLocation: _currentLocation,
-        onLocationUpdated: (location) => setState(() => _currentLocation = location),
+        onPop: () => setState(() {}),
       ),
     );
 
@@ -101,9 +96,7 @@ class _HomePageState extends State<HomePage> {
       const Offset(1, 0),
       (context, animation, secondaryAnimation) => FiltersPage(
         animation: animation,
-        availableItemsFuture: _availableItemsFuture,
-        filters: _filters,
-        onFiltersUpdated: (filters) => setState(() =>  _filters = filters),
+        onPop: () => setState(() {}),
       ),
     );
 
@@ -122,6 +115,12 @@ class _HomePageState extends State<HomePage> {
         _filters.requiredItems.remove(item);
       }
     });
+
+  @override
+  void initState() {
+    super.initState();
+    sharedData.updateUserPosition();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +149,7 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text('McDo ${_currentLocation.name}'),
+          title: Text('McDo ${sharedData.currentLocation?.name}'),
           centerTitle: true,
         ),
         body: Center(
@@ -178,7 +177,7 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 FutureBuilder(
-                  future: _availableItemsFuture,
+                  future: sharedData.currentLocation?.availableItems,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting
                       || snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
@@ -213,7 +212,7 @@ class _HomePageState extends State<HomePage> {
 
                 Expanded(
                   child: FutureBuilder(
-                    future: _availableItemsFuture,
+                    future: sharedData.currentLocation?.availableItems,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());

@@ -4,78 +4,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mcdo_menu_generator/location.dart';
 import 'package:geolocator/geolocator.dart';
-
-typedef LocationUpdatedFunction = Function(Location);
+import 'package:mcdo_menu_generator/shared_data.dart';
 
 class LocationsPage extends StatefulWidget {
-  const LocationsPage({super.key, required this.animation, required this.onLocationUpdated, required this.currentLocation});
+  const LocationsPage({super.key, required this.animation, required this.onPop});
 
   final Animation<double> animation;
-  final LocationUpdatedFunction onLocationUpdated;
-  final Location currentLocation;
+  final void Function() onPop;
 
   @override
   State<LocationsPage> createState() => _LocationsPageState();
 }
 
 class _LocationsPageState extends State<LocationsPage> {
-  LocationUpdatedFunction get _onLocationUpdated => widget.onLocationUpdated;
-  Location get _currentLocation => widget.currentLocation;
-
-  late final Future<List<Location>> _locationsFuture = _getLocations();
-  List<Location> _locations = [];
+  late final Future<List<Location>> _allLocationsFuture = _getAllLocations();
 
   String _input = '';
 
   bool _showIds = false;
 
   Future<List<Location>> _getLocations() async {
-    final positionFuture = _getUserPosition();
-    final locationsFuture = _getAllLocations();
-    final userPosition = await positionFuture;
-    final locations = await locationsFuture;
+    final allLocations = await _allLocationsFuture;
+    final userPosition = await sharedData.userPositionFuture;
 
     if (userPosition != null) {
-      for (final location in locations) {
+      for (final location in allLocations) {
         location.distance = Geolocator.distanceBetween(
           userPosition.latitude, userPosition.longitude,
           location.latitude, location.longitude
         );
       }
 
-      locations.sort((a, b) => a.distance!.compareTo(b.distance!));
+      allLocations.sort((a, b) => a.distance!.compareTo(b.distance!));
     }
-    return locations;
-  }
-
-  Future<Position?> _getUserPosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Check if location services are enabled
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return null;
-    }
-
-    // Check for permissions
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return null;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return null;
-    }
-
-    return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-      ),
-    );
+    return allLocations;
   }
 
   Future<List<Location>> _getAllLocations() async {
@@ -117,6 +79,7 @@ class _LocationsPageState extends State<LocationsPage> {
                   onHorizontalDragEnd: (details) {
                     if (details.velocity.pixelsPerSecond.dx < -50.0) {
                       Navigator.pop(context);
+                      widget.onPop();
                     }
                   },
                   child: Padding(
@@ -130,19 +93,33 @@ class _LocationsPageState extends State<LocationsPage> {
                           actions: [
                             IconButton(
                               icon: const Icon(Icons.close),
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                widget.onPop();
+                              },
                             ),
                           ],
                         ),
 
-                        ElevatedButton(
-                          onPressed: () => setState(() => _showIds = !_showIds),
-                          child: Text(_showIds ? 'Hide IDs' : 'Show IDs')
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => setState(() => _showIds = !_showIds),
+                              child: Text(_showIds ? 'Hide IDs' : 'Show IDs'),
+                            ),
+
+                            Spacer(),
+
+                            ElevatedButton(
+                              onPressed: () => setState(() => sharedData.updateUserPosition()),
+                              child: const Text('Update Position'),
+                            ),
+                          ],
                         ),
 
                         Expanded(
                           child: FutureBuilder(
-                            future: _locationsFuture,
+                            future: _getLocations(),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
                                 return const Center(child: CircularProgressIndicator());
@@ -154,12 +131,12 @@ class _LocationsPageState extends State<LocationsPage> {
                                 return const Center(child: Text('No items found'));
                               }
                               else {
-                                _locations = snapshot.data!;
+                                final locations = snapshot.data!;
                                 //_locations.sort((a, b) => a.distance.compareTo(b.distance));
                                 return ListView(
                                   padding: EdgeInsets.zero, // todo: necessary for top padding but why?
                                   children: [
-                                    ..._locations
+                                    ...locations
                                       .where((location) => _input.isEmpty
                                         || location.id == int.tryParse(_input)
                                         || location.name.toLowerCase().contains(_input.toLowerCase())
@@ -168,7 +145,7 @@ class _LocationsPageState extends State<LocationsPage> {
                                         padding: const EdgeInsets.all(2.0),
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            color: _currentLocation == location
+                                            color: sharedData.currentLocation == location
                                               ? Theme.of(context).highlightColor
                                               : Colors.transparent,
                                             borderRadius: BorderRadius.circular(4.0),
@@ -176,8 +153,9 @@ class _LocationsPageState extends State<LocationsPage> {
                                           child: InkWell(
                                             key: ValueKey(location.id),
                                             onTap: () {
-                                              _onLocationUpdated(location);
+                                              sharedData.currentLocation = location;
                                               Navigator.pop(context);
+                                              widget.onPop();
                                             },
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),

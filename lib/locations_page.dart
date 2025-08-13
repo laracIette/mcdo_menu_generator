@@ -2,10 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mcdo_menu_generator/circle_icon_button.dart';
 import 'package:mcdo_menu_generator/location.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:mcdo_menu_generator/material_text_field.dart';
 import 'package:mcdo_menu_generator/shared_data.dart';
-import 'package:mcdo_menu_generator/utils.dart';
 
 class LocationsPage extends StatefulWidget {
   const LocationsPage({super.key, required this.animation, required this.onPop});
@@ -94,7 +95,7 @@ class _LocationsPageState extends State<LocationsPage> {
                       }
                     },
                     child: Padding(
-                      padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
+                      padding: const EdgeInsetsGeometry.fromLTRB(16.0, 48.0, 16.0, 32.0),
                       child: Column(
                         spacing: 16.0,
                         children: [
@@ -111,16 +112,16 @@ class _LocationsPageState extends State<LocationsPage> {
                             padding: EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 4.0, 0.0),
                             child: Row(
                               children: [
-                                IconButton(
-                                  icon: const Icon(Icons.numbers_rounded, size: iconSize),
-                                  onPressed: () => setState(() => _showIds = !_showIds),
+                                CircleIconButton(
+                                  iconData: Icons.numbers_rounded,
+                                  onTap: () => setState(() => _showIds = !_showIds),
                                 ),
 
                                 Spacer(),
 
-                                IconButton(
-                                  icon: const Icon(Icons.refresh, size: iconSize),
-                                  onPressed: () => setState(() => sharedData.updateUserPosition()),
+                                CircleIconButton(
+                                  iconData: Icons.refresh,
+                                  onTap: () => setState(() => sharedData.updateUserPosition()),
                                 ),
                               ],
                             ),
@@ -152,13 +153,13 @@ class _LocationsPageState extends State<LocationsPage> {
                                         )
                                         .map((location) => Padding(
                                           padding: const EdgeInsetsGeometry.all(2.0),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: sharedData.currentLocation == location
-                                                ? Theme.of(context).highlightColor
-                                                : Colors.transparent,
-                                              borderRadius: BorderRadius.circular(6.0),
-                                            ),
+                                          child: Material(
+                                            color: sharedData.currentLocation == location
+                                              ? Theme.of(context).highlightColor
+                                              : Theme.of(context).hoverColor,
+                                            borderRadius: BorderRadius.circular(8.0),
+                                            elevation: 1.0,
+                                            shadowColor: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
                                             child: InkWell(
                                               key: ValueKey(location.id),
                                               onTap: () {
@@ -209,13 +210,8 @@ class _LocationsPageState extends State<LocationsPage> {
                               }
                             ),
                           ),
-                          TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Search Location',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                            ),
+                          MaterialTextField(
+                            labelText: 'Search Location',
                             onChanged: (input) => setState(() => _input = input),
                           ),
                         ],

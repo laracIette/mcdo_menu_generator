@@ -2,12 +2,13 @@ import 'dart:math' show Random;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mcdo_menu_generator/circle_icon_button.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/filters_page.dart';
 import 'package:mcdo_menu_generator/locations_page.dart';
+import 'package:mcdo_menu_generator/material_text_field.dart';
 import 'package:mcdo_menu_generator/shared_data.dart';
-import 'package:mcdo_menu_generator/utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -128,9 +129,7 @@ class _HomePageState extends State<HomePage> {
     final brightness = Theme.of(context).brightness;
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
-        systemNavigationBarColor: brightness == Brightness.dark
-          ? const Color.fromARGB(255, 19, 19, 24)
-          : const Color.fromARGB(255, 251, 248, 255),
+        systemNavigationBarColor: Colors.transparent,
         systemNavigationBarIconBrightness: brightness == Brightness.dark
           ? Brightness.light
           : Brightness.dark,
@@ -161,7 +160,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
+              padding: const EdgeInsetsGeometry.fromLTRB(16.0, 48.0, 16.0, 32.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 spacing: 16.0,
@@ -179,16 +178,16 @@ class _HomePageState extends State<HomePage> {
                     padding: EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 4.0, 0.0),
                     child: Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.location_searching_rounded, size: iconSize),
-                          onPressed: () => _openLocationsPage(context),
+                        CircleIconButton(
+                          iconData: Icons.location_searching_rounded,
+                          onTap: () => _openLocationsPage(context),
                         ),
 
                         Spacer(),
 
-                        IconButton(
-                          icon: const Icon(Icons.filter_alt_rounded, size: iconSize),
-                          onPressed: () => _openFiltersPage(context),
+                        CircleIconButton(
+                          iconData: Icons.filter_alt_rounded,
+                          onTap: () => _openFiltersPage(context),
                         ),
                       ],
                     ),
@@ -248,13 +247,13 @@ class _HomePageState extends State<HomePage> {
                               ...filteredItems
                                 .map((item) => Padding(
                                   padding: const EdgeInsetsGeometry.all(4.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: _filters.requiredItems.contains(item)
-                                        ? Colors.green.withValues(alpha: 0.2)
-                                        : Theme.of(context).hoverColor,
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
+                                  child: Material(
+                                    color: _filters.requiredItems.contains(item)
+                                      ? Colors.green.withValues(alpha: 0.2)
+                                      : Theme.of(context).hoverColor,
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    elevation: 1.5,
+                                    shadowColor: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
                                     child: InkWell(
                                       key: ValueKey(item.id),
                                       onTap: () => _switchRequiredItem(item),
@@ -305,36 +304,24 @@ class _HomePageState extends State<HomePage> {
                     spacing: 16.0,
                     children: [
                       Expanded(
-                        child: TextField(
+                        child: MaterialTextField(
+                          labelText: 'Target Calories',
+                          onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                             signed: false,
                           ),
-                          decoration: InputDecoration(
-                            labelText: 'Target Calories',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                          ),
-                          onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
-                          autofocus: false,
                         ),
                       ),
 
-                      ElevatedButton(
-                        onPressed: () => setState(() {
+                      CircleIconButton(
+                        iconData: Icons.shuffle,
+                        color: _isRandom ? Theme.of(context).colorScheme.onPrimaryFixed.withValues(alpha: 0.5) : null,
+                        onTap: () => setState(() {
                           ++_randomSeed;
                           _isRandom = true;
                         }),
                         onLongPress: () => setState(() => _isRandom = false),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _isRandom ? Color.fromARGB(255, 64, 54, 118) : null,
-                          foregroundColor: _isRandom ? Colors.white : null,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsetsGeometry.all(16.0),
-                          child: Text('Randomize'),
-                        ),
                       ),
                     ],
                   ),

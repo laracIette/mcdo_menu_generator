@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mcdo_menu_generator/circle_icon_button.dart';
 import 'package:mcdo_menu_generator/filters.dart';
 import 'package:mcdo_menu_generator/item.dart';
+import 'package:mcdo_menu_generator/material_text_field.dart';
 import 'package:mcdo_menu_generator/shared_data.dart';
 import 'package:mcdo_menu_generator/utils.dart';
 
@@ -50,15 +52,15 @@ class _FiltersPageState extends State<FiltersPage> {
       )
       .map((item) => Padding(
         padding: const EdgeInsetsGeometry.all(4.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: _filters.requiredItems.contains(item)
-              ? Colors.green.withValues(alpha: 0.2)
-              : _filters.excludedItems.contains(item)
-                ? Colors.red.withValues(alpha: 0.2)
-                : Theme.of(context).hoverColor,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+        child: Material(
+          color: _filters.requiredItems.contains(item)
+            ? Colors.green.withValues(alpha: 0.2)
+            : _filters.excludedItems.contains(item)
+              ? Colors.red.withValues(alpha: 0.2)
+              : Theme.of(context).hoverColor,
+          borderRadius: BorderRadius.circular(8.0),
+          elevation: 1.5,
+          shadowColor: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
           child: InkWell(
             key: ValueKey(item.id),
             onTap: () => _switchRequiredItem(item),
@@ -153,7 +155,7 @@ class _FiltersPageState extends State<FiltersPage> {
                       }
                     },
                     child: Padding(
-                      padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
+                      padding: const EdgeInsetsGeometry.fromLTRB(16.0, 48.0, 16.0, 32.0),
                       child: Column(
                         spacing: 16.0,
                         children: [
@@ -170,16 +172,16 @@ class _FiltersPageState extends State<FiltersPage> {
                             padding: EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 4.0, 0.0),
                             child: Row(
                               children: [
-                                IconButton(
-                                  icon: const Icon(Icons.numbers_rounded, size: iconSize),
-                                  onPressed: () => setState(() => _showIds = !_showIds),
+                                CircleIconButton(
+                                  iconData: Icons.numbers_rounded,
+                                  onTap: () => setState(() => _showIds = !_showIds),
                                 ),
 
                                 Spacer(),
 
-                                IconButton(
-                                  icon: const Icon(Icons.clear_all_rounded, size: iconSize),
-                                  onPressed: sharedData.filters.excludedItems.isNotEmpty || sharedData.filters.requiredItems.isNotEmpty
+                                CircleIconButton(
+                                  iconData: Icons.clear_all_rounded,
+                                  onTap: sharedData.filters.excludedItems.isNotEmpty || sharedData.filters.requiredItems.isNotEmpty
                                     ? () => setState(() {
                                       sharedData.filters.excludedItems.clear();
                                       sharedData.filters.requiredItems.clear();
@@ -245,13 +247,8 @@ class _FiltersPageState extends State<FiltersPage> {
                             )
                           ),
 
-                          TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Search Item',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                            ),
+                          MaterialTextField(
+                            labelText: 'Search Item',
                             onChanged: (input) => setState(() => _input = input),
                           ),
                         ],

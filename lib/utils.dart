@@ -7,3 +7,5 @@ class HorizontalSizedBox extends SizedBox {
 class VerticalSizedBox extends SizedBox {
   const VerticalSizedBox({super.key, super.height = 16.0});
 }
+
+const iconSize = 24.0;

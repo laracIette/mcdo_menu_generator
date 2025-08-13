@@ -134,119 +134,128 @@ class _FiltersPageState extends State<FiltersPage> {
                   topLeft: Radius.circular(20.0),
                   bottomLeft: Radius.circular(20.0),
                 ),
-                child: GestureDetector(
-                  onHorizontalDragEnd: (details) {
-                    if (details.velocity.pixelsPerSecond.dx > 50.0) {
-                      Navigator.pop(context);
-                      widget.onPop();
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
-                    child: Column(
-                      spacing: 16.0,
-                      children: [
-                        AppBar(
-                          automaticallyImplyLeading: false,
-                          title: const Text('Required Items'),
-                          actions: [
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () => Navigator.pop(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.onPrimaryFixedVariant,
+                        Theme.of(context).colorScheme.onSecondaryFixedVariant,
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    ),
+                  ),
+                  child: GestureDetector(
+                    onHorizontalDragEnd: (details) {
+                      if (details.velocity.pixelsPerSecond.dx > 50.0) {
+                        Navigator.pop(context);
+                        widget.onPop();
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
+                      child: Column(
+                        spacing: 16.0,
+                        children: [
+                          const Text(
+                            'Filter',
+                            style: TextStyle(
+                              fontSize: 30.0,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
-                        ),
+                            textAlign: TextAlign.center,
+                          ),
 
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              onPressed: () => setState(() => _showIds = !_showIds),
-                              child: Padding(
-                                padding: const EdgeInsetsGeometry.all(10.0),
-                                child: Text(_showIds ? 'Hide IDs' : 'Show IDs'),
-                              ),
-                            ),
+                          Padding(
+                            padding: EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 4.0, 0.0),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.numbers_rounded, size: iconSize),
+                                  onPressed: () => setState(() => _showIds = !_showIds),
+                                ),
 
-                            Spacer(),
+                                Spacer(),
 
-                            ElevatedButton(
-                              onPressed: () => setState(() {
-                                sharedData.filters.excludedItems.clear();
-                                sharedData.filters.requiredItems.clear();
-                              }),
-                              child: const Padding(
-                                padding: EdgeInsetsGeometry.all(10.0),
-                                child: Icon(Icons.clear_all_rounded),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        Expanded(
-                          child: FutureBuilder(
-                            future: sharedData.currentLocation?.availableItems,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const Center(child: CircularProgressIndicator());
-                              }
-                              else if (snapshot.hasError) {
-                                return Center(child: Text('Error: ${snapshot.error}'));
-                              }
-                              else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                return const Center(child: Text('No items found'));
-                              }
-                              else {
-                                final availableItems = List<Item>.from(snapshot.data!);
-                                availableItems.sort((a, b) => b.value.compareTo(a.value));
-                                return ListView(
-                                  padding: EdgeInsets.zero, // todo: why?
-                                  children: [
-                                    if (_filters.requiredItems.isNotEmpty)
-                                      ...[
-                                        const Text('Selected Items'),
-                                        const VerticalSizedBox(height: 4.0),
-                                        ..._getItemWidgets(
-                                          context,
-                                          availableItems.where((item) => _filters.requiredItems.contains(item))
-                                        ),
-                                        const VerticalSizedBox(),
-                                      ],
-                                    if (_filters.excludedItems.isNotEmpty)
-                                      ...[
-                                        const Text('Excluded Items'),
-                                        const VerticalSizedBox(height: 4.0),
-                                        ..._getItemWidgets(
-                                          context,
-                                          availableItems.where((item) => _filters.excludedItems.contains(item))
-                                        ),
-                                        const VerticalSizedBox(),
-                                      ],
-                                    if (_filters.requiredItems.length + _filters.excludedItems.length != availableItems.length)
-                                      ...[
-                                        const Text('Available Items'),
-                                        const VerticalSizedBox(height: 4.0),
-                                        ..._getItemWidgets(
-                                          context,
-                                          availableItems.where((item) => !(_filters.requiredItems.contains(item) || _filters.excludedItems.contains(item)))
-                                        ),
-                                      ],
-                                  ],
-                                );
-                              }
-                            },
-                          )
-                        ),
-
-                        TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Search Item',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
+                                IconButton(
+                                  icon: const Icon(Icons.clear_all_rounded, size: iconSize),
+                                  onPressed: sharedData.filters.excludedItems.isNotEmpty || sharedData.filters.requiredItems.isNotEmpty
+                                    ? () => setState(() {
+                                      sharedData.filters.excludedItems.clear();
+                                      sharedData.filters.requiredItems.clear();
+                                    })
+                                    : null,
+                                ),
+                              ],
                             ),
                           ),
-                          onChanged: (input) => setState(() => _input = input),
-                        ),
-                      ],
+
+                          Expanded(
+                            child: FutureBuilder(
+                              future: sharedData.currentLocation?.availableItems,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(child: CircularProgressIndicator());
+                                }
+                                else if (snapshot.hasError) {
+                                  return Center(child: Text('Error: ${snapshot.error}'));
+                                }
+                                else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                  return const Center(child: Text('No items found'));
+                                }
+                                else {
+                                  final availableItems = List<Item>.from(snapshot.data!);
+                                  availableItems.sort((a, b) => b.value.compareTo(a.value));
+                                  return ListView(
+                                    padding: EdgeInsets.zero, // todo: why?
+                                    children: [
+                                      if (_filters.requiredItems.isNotEmpty)
+                                        ...[
+                                          const Text('Selected Items'),
+                                          const VerticalSizedBox(height: 4.0),
+                                          ..._getItemWidgets(
+                                            context,
+                                            availableItems.where((item) => _filters.requiredItems.contains(item))
+                                          ),
+                                          const VerticalSizedBox(),
+                                        ],
+                                      if (_filters.excludedItems.isNotEmpty)
+                                        ...[
+                                          const Text('Excluded Items'),
+                                          const VerticalSizedBox(height: 4.0),
+                                          ..._getItemWidgets(
+                                            context,
+                                            availableItems.where((item) => _filters.excludedItems.contains(item))
+                                          ),
+                                          const VerticalSizedBox(),
+                                        ],
+                                      if (_filters.requiredItems.length + _filters.excludedItems.length != availableItems.length)
+                                        ...[
+                                          const Text('Available Items'),
+                                          const VerticalSizedBox(height: 4.0),
+                                          ..._getItemWidgets(
+                                            context,
+                                            availableItems.where((item) => !(_filters.requiredItems.contains(item) || _filters.excludedItems.contains(item)))
+                                          ),
+                                        ],
+                                    ],
+                                  );
+                                }
+                              },
+                            )
+                          ),
+
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Search Item',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                            ),
+                            onChanged: (input) => setState(() => _input = input),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

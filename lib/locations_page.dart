@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:mcdo_menu_generator/location.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mcdo_menu_generator/shared_data.dart';
+import 'package:mcdo_menu_generator/utils.dart';
 
 class LocationsPage extends StatefulWidget {
   const LocationsPage({super.key, required this.animation, required this.onPop});
@@ -74,147 +75,151 @@ class _LocationsPageState extends State<LocationsPage> {
                   topRight: Radius.circular(20.0),
                   bottomRight: Radius.circular(20.0),
                 ),
-                child: GestureDetector(
-                  onHorizontalDragEnd: (details) {
-                    if (details.velocity.pixelsPerSecond.dx < -50.0) {
-                      Navigator.pop(context);
-                      widget.onPop();
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
-                    child: Column(
-                      spacing: 16.0,
-                      children: [
-                        AppBar(
-                          automaticallyImplyLeading: false,
-                          title: const Text('Location'),
-                          actions: [
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                Navigator.pop(context);
-                                widget.onPop();
-                              },
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.onPrimaryFixedVariant,
+                        Theme.of(context).colorScheme.onSecondaryFixedVariant,
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    ),
+                  ),
+                  child: GestureDetector(
+                    onHorizontalDragEnd: (details) {
+                      if (details.velocity.pixelsPerSecond.dx < -50.0) {
+                        Navigator.pop(context);
+                        widget.onPop();
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
+                      child: Column(
+                        spacing: 16.0,
+                        children: [
+                          const Text(
+                            'Location',
+                            style: TextStyle(
+                              fontSize: 30.0,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
-                        ),
+                            textAlign: TextAlign.center,
+                          ),
 
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              onPressed: () => setState(() => _showIds = !_showIds),
-                              child: Padding(
-                                padding: const EdgeInsetsGeometry.all(10.0),
-                                child: Text(_showIds ? 'Hide IDs' : 'Show IDs'),
-                              ),
+                          Padding(
+                            padding: EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 4.0, 0.0),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.numbers_rounded, size: iconSize),
+                                  onPressed: () => setState(() => _showIds = !_showIds),
+                                ),
+
+                                Spacer(),
+
+                                IconButton(
+                                  icon: const Icon(Icons.refresh, size: iconSize),
+                                  onPressed: () => setState(() => sharedData.updateUserPosition()),
+                                ),
+                              ],
                             ),
+                          ),
 
-                            Spacer(),
-
-                            ElevatedButton(
-                              onPressed: () => setState(() => sharedData.updateUserPosition()),
-                              child: const Padding(
-                                padding: EdgeInsetsGeometry.all(10.0),
-                                child: Icon(Icons.refresh),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        Expanded(
-                          child: FutureBuilder(
-                            future: _getLocations(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const Center(child: CircularProgressIndicator());
-                              }
-                              else if (snapshot.hasError) {
-                                return Center(child: Text('Error: ${snapshot.error}'));
-                              }
-                              else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                return const Center(child: Text('No items found'));
-                              }
-                              else {
-                                final locations = snapshot.data!;
-                                //_locations.sort((a, b) => a.distance.compareTo(b.distance));
-                                return ListView(
-                                  padding: EdgeInsets.zero, // todo: necessary for top padding but why?
-                                  children: [
-                                    ...locations
-                                      .where((location) => _input.isEmpty
-                                        || location.id == int.tryParse(_input)
-                                        || location.name.toLowerCase().contains(_input.toLowerCase())
-                                      )
-                                      .map((location) => Padding(
-                                        padding: const EdgeInsetsGeometry.all(2.0),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: sharedData.currentLocation == location
-                                              ? Theme.of(context).highlightColor
-                                              : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(6.0),
-                                          ),
-                                          child: InkWell(
-                                            key: ValueKey(location.id),
-                                            onTap: () {
-                                              sharedData.currentLocation = location;
-                                              Navigator.pop(context);
-                                              widget.onPop();
-                                            },
-                                            borderRadius: BorderRadius.circular(6.0),
-                                            child: Padding(
-                                              padding: const EdgeInsetsGeometry.all(8.0),
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Text.rich(
-                                                      TextSpan(
-                                                        children: [
-                                                          TextSpan(
-                                                            text: location.name,
-                                                            style: const TextStyle(fontWeight: FontWeight.bold),
-                                                          ),
-                                                          if (location.distance != null)
+                          Expanded(
+                            child: FutureBuilder(
+                              future: _getLocations(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(child: CircularProgressIndicator());
+                                }
+                                else if (snapshot.hasError) {
+                                  return Center(child: Text('Error: ${snapshot.error}'));
+                                }
+                                else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                  return const Center(child: Text('No items found'));
+                                }
+                                else {
+                                  final locations = snapshot.data!;
+                                  //_locations.sort((a, b) => a.distance.compareTo(b.distance));
+                                  return ListView(
+                                    padding: EdgeInsets.zero, // todo: necessary for top padding but why?
+                                    children: [
+                                      ...locations
+                                        .where((location) => _input.isEmpty
+                                          || location.id == int.tryParse(_input)
+                                          || location.name.toLowerCase().contains(_input.toLowerCase())
+                                        )
+                                        .map((location) => Padding(
+                                          padding: const EdgeInsetsGeometry.all(2.0),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: sharedData.currentLocation == location
+                                                ? Theme.of(context).highlightColor
+                                                : Colors.transparent,
+                                              borderRadius: BorderRadius.circular(6.0),
+                                            ),
+                                            child: InkWell(
+                                              key: ValueKey(location.id),
+                                              onTap: () {
+                                                sharedData.currentLocation = location;
+                                                Navigator.pop(context);
+                                                widget.onPop();
+                                              },
+                                              borderRadius: BorderRadius.circular(6.0),
+                                              child: Padding(
+                                                padding: const EdgeInsetsGeometry.all(8.0),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text.rich(
+                                                        TextSpan(
+                                                          children: [
                                                             TextSpan(
-                                                              text: location.distance! < 1000.0
-                                                                ? '  ${(location.distance!).toInt()}m'
-                                                                : '  ${(location.distance! / 1000.0).toStringAsFixed(2)}km',
-                                                              style: const TextStyle(color: Color.fromARGB(255, 202, 202, 202)),
+                                                              text: location.name,
+                                                              style: const TextStyle(fontWeight: FontWeight.bold),
                                                             ),
-                                                          if (_showIds)
-                                                            TextSpan(
-                                                              text: '  ${location.id.toString()}',
-                                                              style: const TextStyle(color: Colors.grey),
-                                                            ),
-                                                        ],
+                                                            if (location.distance != null)
+                                                              TextSpan(
+                                                                text: location.distance! < 1000.0
+                                                                  ? '  ${(location.distance!).toInt()}m'
+                                                                  : '  ${(location.distance! / 1000.0).toStringAsFixed(2)}km',
+                                                                style: const TextStyle(color: Color.fromARGB(255, 202, 202, 202)),
+                                                              ),
+                                                            if (_showIds)
+                                                              TextSpan(
+                                                                text: '  ${location.id.toString()}',
+                                                                style: const TextStyle(color: Colors.grey),
+                                                              ),
+                                                          ],
+                                                        ),
+                                                        softWrap: true,
+                                                        overflow: TextOverflow.visible,
                                                       ),
-                                                      softWrap: true,
-                                                      overflow: TextOverflow.visible,
                                                     ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      )),
-                                  ],
-                                );
+                                        )),
+                                    ],
+                                  );
+                                }
                               }
-                            }
-                          ),
-                        ),
-                        TextField(
-                          decoration: InputDecoration(
-                            labelText: 'Search Location',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
                             ),
                           ),
-                          onChanged: (input) => setState(() => _input = input),
-                        ),
-                      ],
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Search Location',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                            ),
+                            onChanged: (input) => setState(() => _input = input),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -7,6 +7,7 @@ import 'package:mcdo_menu_generator/item.dart';
 import 'package:mcdo_menu_generator/filters_page.dart';
 import 'package:mcdo_menu_generator/locations_page.dart';
 import 'package:mcdo_menu_generator/shared_data.dart';
+import 'package:mcdo_menu_generator/utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -147,186 +148,198 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text('McDo ${sharedData.currentLocation?.name ?? ''}'),
-          centerTitle: true,
-        ),
         body: Center(
-          child: Padding(
-            padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              spacing: 16.0,
-              children: [
-                Row(
-                  spacing: 16.0,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => _openLocationsPage(context),
-                      child: const Padding(
-                        padding: EdgeInsetsGeometry.all(10.0),
-                        child: Icon(Icons.location_searching_rounded),
-                      )
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.onPrimary,
+                  Theme.of(context).colorScheme.onSecondary,
+                ],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                spacing: 16.0,
+                children: [
+                  Text(
+                    'McDo ${sharedData.currentLocation?.name ?? ''}',
+                    style: const TextStyle(
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.w500,
                     ),
+                    textAlign: TextAlign.center,
+                  ),
 
-                    Spacer(),
+                  Padding(
+                    padding: EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 4.0, 0.0),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.location_searching_rounded, size: iconSize),
+                          onPressed: () => _openLocationsPage(context),
+                        ),
 
-                    ElevatedButton(
-                      onPressed: () => _openFiltersPage(context),
-                      child: const Padding(
-                        padding: EdgeInsetsGeometry.all(10.0),
-                        child: Icon(Icons.filter_alt_rounded),
-                      )
+                        Spacer(),
+
+                        IconButton(
+                          icon: const Icon(Icons.filter_alt_rounded, size: iconSize),
+                          onPressed: () => _openFiltersPage(context),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
 
-                FutureBuilder(
-                  future: sharedData.currentLocation?.availableItems,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting
-                      || snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Row(
-                        children: [
-                          Text('Calories : 0.0 kcal'),
-                          Spacer(),
-                          Text('Price : 0.00 €'),
-                        ]
-                      );
-                    }
-                    else {
-                      final filteredItems = _getFilteredItems(snapshot.data!);
-
-                      var currentCalories = 0.0;
-                      var currentPrice = 0.0;
-                      for (var item in filteredItems) {
-                        currentCalories += item.calories;
-                        currentPrice += item.price;
-                      }
-
-                      return Row(
-                        children: [
-                          Text('Calories : $currentCalories kcal'),
-                          Spacer(),
-                          Text('Price : ${currentPrice.toStringAsFixed(2)} €'),
-                        ]
-                      );
-                    }
-                  }
-                ),
-
-                Expanded(
-                  child: FutureBuilder(
+                  FutureBuilder(
                     future: sharedData.currentLocation?.availableItems,
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      }
-                      else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('No items found'));
+                      if (snapshot.connectionState == ConnectionState.waiting
+                        || snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Row(
+                          children: [
+                            Text('Calories : 0.0 kcal'),
+                            Spacer(),
+                            Text('Price : 0.00 €'),
+                          ]
+                        );
                       }
                       else {
                         final filteredItems = _getFilteredItems(snapshot.data!);
-                        return ListView(
+
+                        var currentCalories = 0.0;
+                        var currentPrice = 0.0;
+                        for (var item in filteredItems) {
+                          currentCalories += item.calories;
+                          currentPrice += item.price;
+                        }
+
+                        return Row(
                           children: [
-                            ...filteredItems
-                              .map((item) => Padding(
-                                padding: const EdgeInsetsGeometry.all(4.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: _filters.requiredItems.contains(item)
-                                      ? Colors.green.withValues(alpha: 0.2)
-                                      : Theme.of(context).hoverColor,
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: InkWell(
-                                    key: ValueKey(item.id),
-                                    onTap: () => _switchRequiredItem(item),
-                                    onLongPress: () => _switchExcludedItem(item),
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Padding(
-                                      padding: const EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 8.0, 0.0),
-                                      child: Row(
-                                        spacing: 16.0,
-                                        children: [
-                                          Image.network(
-                                            item.imagePath,
-                                            width: 80,
-                                            height: 80,
-                                            fit: BoxFit.cover,
-                                          ),
+                            Text('Calories : $currentCalories kcal'),
+                            Spacer(),
+                            Text('Price : ${currentPrice.toStringAsFixed(2)} €'),
+                          ]
+                        );
+                      }
+                    }
+                  ),
 
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  item.name,
-                                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                                  softWrap: true,
-                                                  overflow: TextOverflow.visible,
-                                                ),
-                                                Text('${item.calories} kcal'),
-                                              ],
+                  Expanded(
+                    child: FutureBuilder(
+                      future: sharedData.currentLocation?.availableItems,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        else if (snapshot.hasError) {
+                          return Center(child: Text('Error: ${snapshot.error}'));
+                        }
+                        else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Center(child: Text('No items found'));
+                        }
+                        else {
+                          final filteredItems = _getFilteredItems(snapshot.data!);
+                          return ListView(
+                            children: [
+                              ...filteredItems
+                                .map((item) => Padding(
+                                  padding: const EdgeInsetsGeometry.all(4.0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: _filters.requiredItems.contains(item)
+                                        ? Colors.green.withValues(alpha: 0.2)
+                                        : Theme.of(context).hoverColor,
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child: InkWell(
+                                      key: ValueKey(item.id),
+                                      onTap: () => _switchRequiredItem(item),
+                                      onLongPress: () => _switchExcludedItem(item),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: Padding(
+                                        padding: const EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 8.0, 0.0),
+                                        child: Row(
+                                          spacing: 16.0,
+                                          children: [
+                                            Image.network(
+                                              item.imagePath,
+                                              width: 80,
+                                              height: 80,
+                                              fit: BoxFit.cover,
                                             ),
-                                          ),
 
-                                          Text('${item.price.toStringAsFixed(2)} €'),
-                                        ],
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    item.name,
+                                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                                    softWrap: true,
+                                                    overflow: TextOverflow.visible,
+                                                  ),
+                                                  Text('${item.calories} kcal'),
+                                                ],
+                                              ),
+                                            ),
+
+                                            Text('${item.price.toStringAsFixed(2)} €'),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              )),
-                          ],
-                        );
-                      }
-                    },
+                                )),
+                            ],
+                          );
+                        }
+                      },
+                    ),
                   ),
-                ),
 
-                Row(
-                  spacing: 16.0,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                          signed: false,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: 'Target Calories',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
+                  Row(
+                    spacing: 16.0,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: false,
                           ),
+                          decoration: InputDecoration(
+                            labelText: 'Target Calories',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
+                          autofocus: false,
                         ),
-                        onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
-                        autofocus: false,
                       ),
-                    ),
 
-                    ElevatedButton(
-                      onPressed: () => setState(() {
-                        ++_randomSeed;
-                        _isRandom = true;
-                      }),
-                      onLongPress: () => setState(() => _isRandom = false),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isRandom ? Color.fromARGB(255, 64, 54, 118) : null,
-                        foregroundColor: _isRandom ? Colors.white : null,
+                      ElevatedButton(
+                        onPressed: () => setState(() {
+                          ++_randomSeed;
+                          _isRandom = true;
+                        }),
+                        onLongPress: () => setState(() => _isRandom = false),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isRandom ? Color.fromARGB(255, 64, 54, 118) : null,
+                          foregroundColor: _isRandom ? Colors.white : null,
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsetsGeometry.all(16.0),
+                          child: Text('Randomize'),
+                        ),
                       ),
-                      child: const Padding(
-                        padding: EdgeInsetsGeometry.all(14.0),
-                        child: Text('Randomize'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -49,7 +49,7 @@ class _FiltersPageState extends State<FiltersPage> {
         || item.name.toLowerCase().contains(_input.toLowerCase())
       )
       .map((item) => Padding(
-        padding: const EdgeInsets.all(4.0),
+        padding: const EdgeInsetsGeometry.all(4.0),
         child: Container(
           decoration: BoxDecoration(
             color: _filters.requiredItems.contains(item)
@@ -141,7 +141,7 @@ class _FiltersPageState extends State<FiltersPage> {
                     }
                   },
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
+                    padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
                     child: Column(
                       spacing: 16.0,
                       children: [
@@ -156,9 +156,29 @@ class _FiltersPageState extends State<FiltersPage> {
                           ],
                         ),
 
-                        ElevatedButton(
-                          onPressed: () => setState(() => _showIds = !_showIds),
-                          child: Text(_showIds ? 'Hide IDs' : 'Show IDs')
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => setState(() => _showIds = !_showIds),
+                              child: Padding(
+                                padding: const EdgeInsetsGeometry.all(10.0),
+                                child: Text(_showIds ? 'Hide IDs' : 'Show IDs'),
+                              ),
+                            ),
+
+                            Spacer(),
+
+                            ElevatedButton(
+                              onPressed: () => setState(() {
+                                sharedData.filters.excludedItems.clear();
+                                sharedData.filters.requiredItems.clear();
+                              }),
+                              child: const Padding(
+                                padding: EdgeInsetsGeometry.all(10.0),
+                                child: Icon(Icons.clear_rounded),
+                              ),
+                            ),
+                          ],
                         ),
 
                         Expanded(
@@ -175,7 +195,8 @@ class _FiltersPageState extends State<FiltersPage> {
                                 return const Center(child: Text('No items found'));
                               }
                               else {
-                                final availableItems = snapshot.data!;
+                                final availableItems = List<Item>.from(snapshot.data!);
+                                availableItems.sort((a, b) => b.value.compareTo(a.value));
                                 return ListView(
                                   padding: EdgeInsets.zero, // todo: why?
                                   children: [
@@ -216,9 +237,11 @@ class _FiltersPageState extends State<FiltersPage> {
                         ),
 
                         TextField(
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Search Item',
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
                           ),
                           onChanged: (input) => setState(() => _input = input),
                         ),

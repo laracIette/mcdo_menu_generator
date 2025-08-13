@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   bool _isRandom = false;
 
   List<Item> _getFilteredItems(List<Item> availableItems) {
-    final myAvailableItems = List.from(availableItems);
+    final myAvailableItems = List<Item>.from(availableItems);
     if (_isRandom) {
       myAvailableItems.shuffle(Random(_randomSeed));
     }
@@ -149,12 +149,12 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text('McDo ${sharedData.currentLocation?.name}'),
+          title: Text('McDo ${sharedData.currentLocation?.name ?? ''}'),
           centerTitle: true,
         ),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
+            padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               spacing: 16.0,
@@ -164,14 +164,20 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     ElevatedButton(
                       onPressed: () => _openLocationsPage(context),
-                      child: const Text('Location'),
+                      child: const Padding(
+                        padding: EdgeInsetsGeometry.all(10.0),
+                        child: Icon(Icons.location_searching_rounded),
+                      )
                     ),
 
                     Spacer(),
 
                     ElevatedButton(
                       onPressed: () => _openFiltersPage(context),
-                      child: const Text('Filter')
+                      child: const Padding(
+                        padding: EdgeInsetsGeometry.all(10.0),
+                        child: Icon(Icons.filter_alt_rounded),
+                      )
                     ),
                   ],
                 ),
@@ -229,7 +235,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             ...filteredItems
                               .map((item) => Padding(
-                                padding: const EdgeInsets.all(4.0),
+                                padding: const EdgeInsetsGeometry.all(4.0),
                                 child: Container(
                                   decoration: BoxDecoration(
                                     color: _filters.requiredItems.contains(item)
@@ -242,7 +248,7 @@ class _HomePageState extends State<HomePage> {
                                     onTap: () => _switchRequiredItem(item),
                                     onLongPress: () => _switchExcludedItem(item),
                                     child: Padding(
-                                      padding: const EdgeInsets.fromLTRB(4.0, 0.0, 8.0, 0.0),
+                                      padding: const EdgeInsetsGeometry.fromLTRB(4.0, 0.0, 8.0, 0.0),
                                       child: Row(
                                         spacing: 16.0,
                                         children: [
@@ -291,9 +297,11 @@ class _HomePageState extends State<HomePage> {
                           decimal: true,
                           signed: false,
                         ),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Target Calories',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
                         ),
                         onChanged: (input) => setState(() => _targetCalories = double.tryParse(input) ?? 0.0),
                         autofocus: false,
@@ -310,7 +318,10 @@ class _HomePageState extends State<HomePage> {
                         backgroundColor: _isRandom ? Color.fromARGB(255, 64, 54, 118) : null,
                         foregroundColor: _isRandom ? Colors.white : null,
                       ),
-                      child: Text('Randomize'),
+                      child: const Padding(
+                        padding: EdgeInsetsGeometry.all(14.0),
+                        child: Text('Randomize'),
+                      ),
                     ),
                   ],
                 ),

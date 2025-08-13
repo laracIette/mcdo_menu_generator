@@ -83,13 +83,13 @@ class _LocationsPageState extends State<LocationsPage> {
                     }
                   },
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
+                    padding: const EdgeInsetsGeometry.fromLTRB(16.0, 16.0, 16.0, 32.0),
                     child: Column(
                       spacing: 16.0,
                       children: [
                         AppBar(
                           automaticallyImplyLeading: false,
-                          title: const Text('Locations'),
+                          title: const Text('Location'),
                           actions: [
                             IconButton(
                               icon: const Icon(Icons.close),
@@ -105,14 +105,20 @@ class _LocationsPageState extends State<LocationsPage> {
                           children: [
                             ElevatedButton(
                               onPressed: () => setState(() => _showIds = !_showIds),
-                              child: Text(_showIds ? 'Hide IDs' : 'Show IDs'),
+                              child: Padding(
+                                padding: const EdgeInsetsGeometry.all(10.0),
+                                child: Text(_showIds ? 'Hide IDs' : 'Show IDs'),
+                              ),
                             ),
 
                             Spacer(),
 
                             ElevatedButton(
                               onPressed: () => setState(() => sharedData.updateUserPosition()),
-                              child: const Text('Update Position'),
+                              child: const Padding(
+                                padding: EdgeInsetsGeometry.all(10.0),
+                                child: Icon(Icons.refresh),
+                              ),
                             ),
                           ],
                         ),
@@ -142,13 +148,13 @@ class _LocationsPageState extends State<LocationsPage> {
                                         || location.name.toLowerCase().contains(_input.toLowerCase())
                                       )
                                       .map((location) => Padding(
-                                        padding: const EdgeInsets.all(2.0),
+                                        padding: const EdgeInsetsGeometry.all(2.0),
                                         child: Container(
                                           decoration: BoxDecoration(
                                             color: sharedData.currentLocation == location
                                               ? Theme.of(context).highlightColor
                                               : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(4.0),
+                                            borderRadius: BorderRadius.circular(6.0),
                                           ),
                                           child: InkWell(
                                             key: ValueKey(location.id),
@@ -158,7 +164,7 @@ class _LocationsPageState extends State<LocationsPage> {
                                               widget.onPop();
                                             },
                                             child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
+                                              padding: const EdgeInsetsGeometry.all(8.0),
                                               child: Row(
                                                 children: [
                                                   Expanded(
@@ -200,9 +206,11 @@ class _LocationsPageState extends State<LocationsPage> {
                           ),
                         ),
                         TextField(
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Search Location',
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
                           ),
                           onChanged: (input) => setState(() => _input = input),
                         ),

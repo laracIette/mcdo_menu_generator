@@ -22,8 +22,8 @@ class _HomePageState extends State<HomePage> {
 
   Filters get _filters => sharedData.filters;
 
-  int _randomSeed = 0;
-  bool _isRandom = false;
+  int? _randomSeed;
+  bool get _isRandom => _randomSeed != null;
 
   List<Item> _getFilteredItems(List<Item> availableItems) {
     final myAvailableItems = List<Item>.from(availableItems);
@@ -120,8 +120,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    super.initState();
     sharedData.updateUserPosition();
+    super.initState();
   }
 
   @override
@@ -317,11 +317,8 @@ class _HomePageState extends State<HomePage> {
                       CircleIconButton(
                         iconData: Icons.shuffle,
                         color: _isRandom ? Theme.of(context).colorScheme.onPrimaryFixed.withValues(alpha: 0.5) : null,
-                        onTap: () => setState(() {
-                          ++_randomSeed;
-                          _isRandom = true;
-                        }),
-                        onLongPress: () => setState(() => _isRandom = false),
+                        onTap: () => setState(() => _randomSeed = DateTime.now().millisecondsSinceEpoch),
+                        onLongPress: () => setState(() => _randomSeed = null),
                       ),
                     ],
                   ),
@@ -334,4 +331,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-

@@ -9,6 +9,7 @@ import 'package:mcdo_menu_generator/filters_page.dart';
 import 'package:mcdo_menu_generator/locations_page.dart';
 import 'package:mcdo_menu_generator/material_text_field.dart';
 import 'package:mcdo_menu_generator/shared_data.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -264,10 +265,16 @@ class _HomePageState extends State<HomePage> {
                                         child: Row(
                                           spacing: 16.0,
                                           children: [
-                                            Image.network(
-                                              item.imagePath,
-                                              width: 80,
-                                              height: 80,
+                                            CachedNetworkImage(
+                                              imageUrl: item.imagePath,
+                                              progressIndicatorBuilder: (context, url, downloadProgress) => 
+                                              Padding(
+                                                padding: EdgeInsetsGeometry.all(15.0), 
+                                                child: CircularProgressIndicator(value: downloadProgress.progress),
+                                              ),
+                                              errorWidget: (context, url, error) => Icon(Icons.error),
+                                              width: 80.0,
+                                              height: 80.0,
                                               fit: BoxFit.cover,
                                             ),
 

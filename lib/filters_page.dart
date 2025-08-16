@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mcdo_menu_generator/circle_icon_button.dart';
 import 'package:mcdo_menu_generator/filters.dart';
@@ -71,10 +72,16 @@ class _FiltersPageState extends State<FiltersPage> {
               child: Row(
                 spacing: 16.0,
                 children: [
-                  Image.network(
-                    item.imagePath,
-                    width: 80,
-                    height: 80,
+                   CachedNetworkImage(
+                    imageUrl: item.imagePath,
+                    progressIndicatorBuilder: (context, url, downloadProgress) => 
+                    Padding(
+                      padding: EdgeInsetsGeometry.all(15.0), 
+                      child: CircularProgressIndicator(value: downloadProgress.progress),
+                    ),
+                    errorWidget: (context, url, error) => Icon(Icons.error),
+                    width: 80.0,
+                    height: 80.0,
                     fit: BoxFit.cover,
                   ),
 

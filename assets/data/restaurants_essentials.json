@@ -7352,6 +7352,17 @@
     "ref": 171
   },
   {
+    "name": "Toulouse Saint Pierre",
+    "latitude": 43.6032461,
+    "longitude": 1.4362404,
+    "saleTypes": [
+      "EAT_IN",
+      "TAKE_OUT",
+      "HOME_DELIVERY"
+    ],
+    "ref": 1717
+  },
+  {
     "name": "Evreux Madeleine",
     "latitude": 49.01131,
     "longitude": 1.168911,
